@@ -29,41 +29,36 @@
     </div>
 
     <script>
-        // ========================================================
-        // MASUKKAN ID GOOGLE SHEET ANDA DI BAWAH INI
-        // ========================================================
-        const SHEET_ID = '1A2B3C4D5E6F7G8H9I0J'; // <-- Ganti dengan ID Sheet Anda yang sama
-        const SHEET_NAME = 'chapters';
-
         const urlParams = new URLSearchParams(window.location.search);
         const mangaKey = urlParams.get('title');
 
-        // Mengatur judul utama sementara berdasarkan parameter URL
         if(mangaKey) {
             document.getElementById('manga-title').innerText = mangaKey.replace('-', ' ');
         }
 
-        const jsonUrl = `https://google.com{SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+        // Tautan CSV khusus tab chapters milik Anda
+        const chaptersCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=799183564&single=true&output=csv';
 
-        fetch(jsonUrl)
+        fetch(chaptersCsvUrl)
             .then(res => res.text())
-            .then(data => {
-                const jsonText = data.match(/(?<="table":).*(?=}\);)/g);
-                const jsonData = JSON.parse(jsonText);
-                const rows = jsonData.rows;
-
+            .then(csvText => {
+                const lines = csvText.split(/\r?\n/);
                 const listContainer = document.getElementById('list-container');
                 document.getElementById('loading-status').style.display = 'none';
 
                 let foundChapter = false;
 
-                rows.forEach(row => {
-                    const mKey = row.c ? row.c.v : '';  // Kolom A (MangaKey)
-                    const chId = row.c ? row.c.v : '';  // Kolom B (ChapterId)
-                    const chName = row.c ? row.c.v : '';// Kolom C (ChapterName)
-                    const totalP = row.c ? row.c.v : 1; // Kolom D (TotalPages)
+                // Loop mulai dari index 1 untuk melewati header
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
 
-                    // Hanya tampilkan chapter yang COCOK dengan manga yang dipilih
+                    const columns = lines[i].split(',');
+                    const mKey = columns[0] ? columns[0].trim() : '';  // Kolom A
+                    const chId = columns[1] ? columns[1].trim() : '';  // Kolom B
+                    const chName = columns[2] ? columns[2].trim() : '';// Kolom C
+                    const totalP = columns[3] ? columns[3].trim() : '1';// Kolom D
+
+                    // Filter hanya menampilkan chapter yang cocok dengan komik yang diklik
                     if (mKey === mangaKey) {
                         foundChapter = true;
                         const li = document.createElement('li');
@@ -75,7 +70,7 @@
                             </a>`;
                         listContainer.appendChild(li);
                     }
-                });
+                }
 
                 if(!foundChapter) {
                     document.getElementById('loading-status').style.display = 'block';
@@ -83,8 +78,8 @@
                 }
             })
             .catch(err => {
-                console.error("Gagal mengambil data chapter: ", err);
-                document.getElementById('loading-status').innerText = "Gagal memuat chapter.";
+                console.error("Gagal memuat chapter: ", err);
+                document.getElementById('loading-status').innerText = "Gagal memuat daftar chapter.";
             });
     </script>
 </body>
