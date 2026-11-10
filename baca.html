@@ -5,45 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manga Reader</title>
     <style>
-        /* Variabel Warna Default (Dark Mode) */
         :root {
             --bg-color: #121212;
             --text-color: #ffffff;
             --card-bg: #1e1e1e;
             --btn-home: #2f3542;
         }
-        /* Variabel Warna Light Mode */
         [data-theme="light"] {
             --bg-color: #f1f2f6;
             --text-color: #2f3542;
             --card-bg: #ffffff;
             --btn-home: #ced6e0;
         }
-
         body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', Arial, sans-serif; text-align: center; margin: 0; padding: 20px; transition: background 0.3s, color 0.3s; }
         .reader-container { max-width: 800px; margin: 0 auto; }
         .manga-page { max-width: 100%; height: auto; border: 2px solid #222; margin: 20px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; }
-        
-        /* Bar Atas Utilitas */
         .utility-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        
         .nav-buttons { margin: 25px 0; display: flex; justify-content: center; align-items: center; gap: 10px; }
         button, .dropdown-select { background-color: #ff4757; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 6px; height: 45px; box-sizing: border-box; transition: 0.2s; }
         button:hover { background-color: #ff6b81; }
-        
         .dropdown-select { background-color: var(--card-bg); color: var(--text-color); border: 1px solid #57606f; padding: 0 15px; min-width: 180px; }
         button:disabled { background-color: #333; color: #777; cursor: not-allowed; }
         .info { font-size: 18px; color: #a4b0be; }
         .back-link { display: block; margin-top: 15px; color: #ff4757; text-decoration: none; font-size: 15px; }
-        
-        /* Style Tombol Mode & Bookmark */
         .btn-util { background-color: var(--btn-home); color: var(--text-color); padding: 8px 15px; font-size: 14px; height: auto; }
     </style>
 </head>
 <body>
 
     <div class="reader-container">
-        <!-- Fitur Utilitas Atas -->
         <div class="utility-bar">
             <button class="btn-util" onclick="toggleTheme()" id="theme-btn">☀️ Light Mode</button>
             <button class="btn-util" onclick="saveBookmark()" style="background-color: #2ed573;">📌 Simpan Halaman</button>
@@ -52,17 +42,14 @@
         <h2 id="display-title">Memuat...</h2>
         <div class="info">Halaman <span id="current-page">1</span> / <span id="total-pages">--</span></div>
         
-        <!-- Navigasi Atas -->
         <div class="nav-buttons">
             <button class="btn-prev" onclick="changePage(-1)">◀ Prev</button>
             <select class="dropdown-select ch-dropdown" onchange="navigateChapter(this.value)"></select>
             <button class="btn-next" onclick="changePage(1)">Next ▶</button>
         </div>
 
-        <!-- Area Gambar -->
         <img id="manga-img" src="" alt="Manga Page" class="manga-page" onclick="changePage(1)">
 
-        <!-- Navigasi Bawah -->
         <div class="nav-buttons">
             <button class="btn-prev" onclick="changePage(-1)">◀ Prev</button>
             <select class="dropdown-select ch-dropdown" onchange="navigateChapter(this.value)"></select>
@@ -73,47 +60,39 @@
     </div>
 
     <script>
-        // ========================================================
-        // MASUKKAN ID GOOGLE SHEET ANDA DI BAWAH INI
-        // ========================================================
-        const SHEET_ID = '1A2B3C4D5E6F7G8H9I0J'; // <-- Ganti dengan ID Sheet Anda yang sama
-        const SHEET_NAME = 'chapters';
         const fileExt = '.jpg'; 
-
         const urlParams = new URLSearchParams(window.location.search);
         const mangaKey = urlParams.get('title') || 'dragon-ball';
         let currentChapterId = urlParams.get('ch');
         let totalPages = parseInt(urlParams.get('total')) || 1;
         let page = 1;
 
-        // Cek apakah ada halaman tersimpan (Fitur Bookmark)
         const savedPageKey = `bookmark_${mangaKey}_${currentChapterId}`;
         const hasBookmark = localStorage.getItem(savedPageKey);
         if(hasBookmark) {
             page = parseInt(hasBookmark);
-            alert(`Melanjutkan membaca halaman ${page} yang Anda simpan sebelumnya!`);
+            alert(`Melanjutkan membaca halaman ${page} yang disimpan!`);
         }
 
         document.getElementById('display-title').innerText = `${mangaKey.replace('-', ' ').toUpperCase()} - ${currentChapterId.replace('-', ' ')}`;
         document.getElementById('total-pages').innerText = totalPages;
         document.getElementById('back-to-list').href = `manga.html?title=${mangaKey}`;
 
-        // Mengambil data untuk mengisi dropdown menu dari Google Sheets
-        const jsonUrl = `https://google.com{SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+        // Mengambil CSV untuk dropdown
+        const chaptersCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=799183564&single=true&output=csv';
 
-        fetch(jsonUrl)
+        fetch(chaptersCsvUrl)
             .then(res => res.text())
-            .then(data => {
-                const jsonText = data.match(/(?<="table":).*(?=}\);)/g);
-                const jsonData = JSON.parse(jsonText);
-                const rows = jsonData.rows;
-
+            .then(csvText => {
+                const lines = csvText.split(/\r?\n/);
                 document.querySelectorAll('.ch-dropdown').forEach(dropdown => {
-                    rows.forEach(row => {
-                        const mKey = row.c ? row.c.v : '';
-                        const chId = row.c ? row.c.v : '';
-                        const chName = row.c ? row.c.v : '';
-                        const totalP = row.c ? row.c.v : 1;
+                    for (let i = 1; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue;
+                        const columns = lines[i].split(',');
+                        const mKey = columns[0] ? columns[0].trim() : '';
+                        const chId = columns[1] ? columns[1].trim() : '';
+                        const chName = columns[2] ? columns[2].trim() : '';
+                        const totalP = columns[3] ? columns[3].trim() : '1';
 
                         if (mKey === mangaKey) {
                             const option = document.createElement('option');
@@ -122,11 +101,12 @@
                             if(chId === currentChapterId) option.selected = true;
                             dropdown.appendChild(option);
                         }
-                    });
+                    }
                 });
             });
 
         function renderPage() {
+            // BERUBAH MENJADI FORMAT 3 DIGIT (001.jpg, 002.jpg, dst)
             const formattedPage = String(page).padStart(3, '0');
             document.getElementById('manga-img').src = `manga/${mangaKey}/${currentChapterId}/${formattedPage}${fileExt}`;
             document.getElementById('current-page').innerText = page;
@@ -144,22 +124,15 @@
         }
 
         function navigateChapter(url) { window.location.href = url; }
-
-        // ========================================================
-        // LOGIKA FITUR UTAN / TAMBAHAN
-        // ========================================================
         
-        // 1. Fitur Save Bookmark
         function saveBookmark() {
             localStorage.setItem(savedPageKey, page);
-            alert(`Halaman ${page} berhasil disimpan di browser Anda!`);
+            alert(`Halaman ${page} disimpan!`);
         }
 
-        // 2. Fitur Toggle Tema (Dark/Light)
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             let targetTheme = 'dark';
-
             if (currentTheme === 'dark' || !currentTheme) {
                 targetTheme = 'light';
                 document.getElementById('theme-btn').innerText = "🌙 Dark Mode";
@@ -167,17 +140,14 @@
                 targetTheme = 'dark';
                 document.getElementById('theme-btn').innerText = "☀️ Light Mode";
             }
-
             document.documentElement.setAttribute('data-theme', targetTheme);
             localStorage.setItem('theme_preference', targetTheme);
         }
 
-        // Jalankan preferensi tema tersimpan saat load halaman
         const savedTheme = localStorage.getItem('theme_preference') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         if(savedTheme === 'light') document.getElementById('theme-btn').innerText = "🌙 Dark Mode";
 
-        // Fitur Keyboard
         document.addEventListener('keydown', e => {
             if (e.key === "ArrowLeft" && page > 1) changePage(-1);
             if (e.key === "ArrowRight" && page < totalPages) changePage(1);
