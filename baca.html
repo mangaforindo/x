@@ -85,7 +85,60 @@
         let currentChapterId = urlParams.get('ch');
         let totalPages = parseInt(urlParams.get('total')) || 1;
         let page = 1;
-document.getElementById('display-title').innerText = `${mangaKey.replace(/-/g, ' ').toUpperCase()} - ${currentChapterId ? currentChapterId.replace(/-/g, ' ') : ''}`;
+        const chapterDisplayName = currentChapterId ? currentChapterId.replace(/-/g, ' ') : '';
+        function setReaderTitle(title) {
+            document.getElementById('display-title').textContent = `${title} - ${chapterDisplayName}`.trim();
+        }
+        setReaderTitle(mangaKey.replace(/-/g, ' ').toUpperCase());
+
+        function parseCatalogCSV(text) {
+            const rows = [];
+            let row = [];
+            let value = '';
+            let quoted = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const next = text[i + 1];
+                if (char === '"' && quoted && next === '"') {
+                    value += '"';
+                    i++;
+                } else if (char === '"') {
+                    quoted = !quoted;
+                } else if (char === ',' && !quoted) {
+                    row.push(value);
+                    value = '';
+                } else if ((char === '\n' || char === '\r') && !quoted) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(value);
+                    rows.push(row);
+                    row = [];
+                    value = '';
+                } else {
+                    value += char;
+                }
+            }
+            if (value.length || row.length) {
+                row.push(value);
+                rows.push(row);
+            }
+            return rows;
+        }
+
+        const mangaCatalogCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=0&single=true&output=csv';
+        fetch(mangaCatalogCsvUrl, { cache: 'no-store' })
+            .then(response => {
+                if (!response.ok) throw new Error(`Google Sheet merespons ${response.status}`);
+                return response.text();
+            })
+            .then(csvText => {
+                const mangaRow = parseCatalogCSV(csvText).slice(1).find(columns => {
+                    const key = (columns[0] || '').trim().replace(/^"|"$/g, '');
+                    return key.toLowerCase() === mangaKey.toLowerCase();
+                });
+                const fullTitle = mangaRow ? (mangaRow[1] || '').trim() : '';
+                if (fullTitle) setReaderTitle(fullTitle);
+            })
+            .catch(error => console.warn('Judul manga lengkap tidak termuat:', error));
         document.getElementById('total-pages').innerText = totalPages;
         document.getElementById('back-to-list').href = `manga.html?title=${mangaKey}`;
 
