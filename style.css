@@ -250,7 +250,7 @@ button, select, a { -webkit-tap-highlight-color: transparent; }
 .manga-cover[hidden] { display: none; }
 .manga-profile-copy { min-width: 0; }
 .manga-profile h1 { margin: 0 0 12px; color: var(--text); font-size: clamp(25px, 4vw, 40px); letter-spacing: -.8px; line-height: 1.12; overflow-wrap: anywhere; }
-.manga-description { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.75; white-space: pre-line; }
+.manga-description { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.75; text-align: justify; text-justify: inter-word; white-space: pre-line; }
 .chapter-section { margin-top: 4px; }
 .chapter-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 0 0 14px; }
 .chapter-section-heading .manga-kicker { margin-bottom: 3px; }
