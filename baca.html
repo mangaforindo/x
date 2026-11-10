@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manga Reader</title>
+    <style>
+        body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .reader-container { max-width: 800px; margin: 0 auto; }
+        .manga-page { max-width: 100%; height: auto; border: 2px solid #222; margin: 20px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; }
+        .nav-buttons { margin: 25px 0; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        button, .dropdown-select { background-color: #ff4757; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 6px; height: 45px; box-sizing: border-box; transition: 0.2s; }
+        button:hover { background-color: #ff6b81; }
+        .dropdown-select { background-color: #2f3542; border: 1px solid #57606f; padding: 0 15px; min-width: 180px; }
+        .dropdown-select:hover { background-color: #57606f; }
+        button:disabled { background-color: #333; color: #777; cursor: not-allowed; }
+        .info { font-size: 18px; color: #a4b0be; }
+        .back-link { display: block; margin-top: 15px; color: #ff4757; text-decoration: none; font-size: 15px; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="reader-container">
+        <h2 id="display-title">Memuat...</h2>
+        <div class="info">Halaman <span id="current-page">1</span> / <span id="total-pages">--</span></div>
+        
+        <!-- Navigasi Atas -->
+        <div class="nav-buttons">
+            <button class="btn-prev" onclick="changePage(-1)">◀ Prev</button>
+            <select class="dropdown-select ch-dropdown" onchange="navigateChapter(this.value)"></select>
+            <button class="btn-next" onclick="changePage(1)">Next ▶</button>
+        </div>
+
+        <!-- Area Gambar -->
+        <img id="manga-img" src="" alt="Manga Page" class="manga-page" onclick="changePage(1)">
+
+        <!-- Navigasi Bawah -->
+        <div class="nav-buttons">
+            <button class="btn-prev" onclick="changePage(-1)">◀ Prev</button>
+            <select class="dropdown-select ch-dropdown" onchange="navigateChapter(this.value)"></select>
+            <button class="btn-next" onclick="changePage(1)">Next ▶</button>
+        </div>
+
+        <a href="#" id="back-to-list" class="back-link">← Kembali ke Daftar Chapter</a>
+    </div>
+
+    <script>
+        const database = {
+            "goblin": {
+                name: "Goblin Slayer",
+                chapters: [
+                    { id: "chapter-02", name: "Chapter 02: Pertempuran Sengit", totalPages: 2 },
+                    { id: "chapter-01", name: "Chapter 01: Awal Mula Petualangan", totalPages: 2 }
+                ]
+            },
+            "one-piece": {
+                name: "One Piece",
+                chapters: [
+                    { id: "chapter-02", name: "Chapter 02: Manusia Karet", totalPages: 2 },
+                    { id: "chapter-01", name: "Chapter 01: Fajar Petualangan", totalPages: 3 }
+                ]
+            }
+        };
+
+        const fileExt = '.jpg'; 
+        const urlParams = new URLSearchParams(window.location.search);
+        const mangaKey = urlParams.get('title') || 'goblin';
+        let currentChapterId = urlParams.get('ch');
+        let totalPages = parseInt(urlParams.get('total'));
+        let page = 1;
+
+        const currentManga = database[mangaKey];
+        const activeChapter = currentManga.chapters.find(c => c.id === currentChapterId);
+
+        document.getElementById('display-title').innerText = `${currentManga.name} - ${activeChapter.name}`;
+        document.getElementById('total-pages').innerText = totalPages;
+        document.getElementById('back-to-list').href = `manga.html?title=${mangaKey}`;
+
+        // Mengisi pilihan dropdown atas & bawah secara otomatis
+        document.querySelectorAll('.ch-dropdown').forEach(dropdown => {
+            currentManga.chapters.forEach(ch => {
+                const option = document.createElement('option');
+                option.value = `baca.html?title=${mangaKey}&ch=${ch.id}&total=${ch.totalPages}`;
+                option.text = ch.name;
+                if(ch.id === currentChapterId) option.selected = true;
+                dropdown.appendChild(option);
+            });
+        });
+
+        function renderPage() {
+            const formattedPage = String(page).padStart(2, '0');
+            document.getElementById('manga-img').src = `manga/${mangaKey}/${currentChapterId}/${formattedPage}${fileExt}`;
+            document.getElementById('current-page').innerText = page;
+
+            document.querySelectorAll('.btn-prev').forEach(btn => btn.disabled = (page === 1));
+            document.querySelectorAll('.btn-next').forEach(btn => btn.disabled = (page === totalPages));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function changePage(direction) {
+            page += direction;
+            if (page < 1) page = 1;
+            if (page > totalPages) { page = totalPages; return; }
+            renderPage();
+        }
+
+        function navigateChapter(url) { window.location.href = url; }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === "ArrowLeft" && page > 1) changePage(-1);
+            if (e.key === "ArrowRight" && page < totalPages) changePage(1);
+        });
+
+        renderPage();
+    </script>
+</body>
+</html>
