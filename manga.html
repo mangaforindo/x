@@ -36,36 +36,8 @@
             document.getElementById('manga-title').innerText = mangaKey.replace(/-/g, ' ');
         }
 
+        // Tautan CSV khusus tab chapters milik Anda dengan bypass cache otomatis
         const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
-
-        function parseCSV(text) {
-            let lines = text.split(/\r?\n/);
-            let result = [];
-            
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i].trim();
-                if (!line) continue;
-                
-                let row = [];
-                let inQuotes = false;
-                let currentStr = '';
-                
-                for (let j = 0; j < line.length; j++) {
-                    let char = line[j];
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        row.push(currentStr.trim().replace(/^"|"$/g, ''));
-                        currentStr = '';
-                    } else {
-                        currentStr += char;
-                    }
-                }
-                row.push(currentStr.trim().replace(/^"|"$/g, ''));
-                result.push(row);
-            }
-            return result;
-        }
 
         fetch(chaptersCsvUrl)
             .then(res => {
@@ -73,19 +45,26 @@
                 return res.text();
             })
             .then(csvText => {
-                const parsedData = parseCSV(csvText);
+                const lines = csvText.split(/\r?\n/);
                 const listContainer = document.getElementById('list-container');
                 document.getElementById('loading-status').style.display = 'none';
 
                 let foundChapter = false;
 
-                // Melewati baris ke-0 (header)
-                for (let i = 1; i < parsedData.length; i++) {
-                    const columns = parsedData[i];
-                    if (columns.length < 4) continue;
+                // Loop baris data dari Google Sheet (melewati baris header ke-0)
+                for (let i = 1; i < lines.length; i++) {
+                    const currentLine = lines[i].trim();
+                    if (!currentLine) continue;
 
-                    // Trik Destructuring: Otomatis membagi isi kolom A, B, C, D ke variabel tanpa indeks angka
-                    const [mKey, chId, chName, totalP] = columns;
+                    // Menggunakan pemisah dasar .split untuk mencegah penulisan array terpotong otomatis
+                    const columns = currentLine.split(',');
+                    if (columns.length < 4) continue;
+                    
+                    // Membaca indeks kolom dengan metode yang aman diakui browser
+                    const mKey = columns[0] ? columns[0].trim().replace(/^"|"$/g, '') : '';   // Kolom A
+                    const chId = columns[1] ? columns[1].trim().replace(/^"|"$/g, '') : '';   // Kolom B
+                    const chName = columns[2] ? columns[2].trim().replace(/^"|"$/g, '') : ''; // Kolom C
+                    const totalP = columns[3] ? columns[3].trim().replace(/^"|"$/g, '') : '1'; // Kolom D
 
                     if (mKey && mKey.toLowerCase() === mangaKey.toLowerCase()) {
                         foundChapter = true;
@@ -102,13 +81,13 @@
 
                 if(!foundChapter) {
                     document.getElementById('loading-status').style.display = 'block';
-                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini.";
+                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini. Cek kembali Google Sheet Anda.";
                 }
             })
             .catch(err => {
                 console.error("Gagal memuat chapter: ", err);
                 document.getElementById('loading-status').style.display = 'block';
-                document.getElementById('loading-status').innerText = "Gagal memuat daftar chapter.";
+                document.getElementById('loading-status').innerText = "Gagal memuat daftar chapter. Silakan coba muat ulang halaman.";
             });
     </script>
 </body>
