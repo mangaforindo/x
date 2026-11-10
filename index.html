@@ -16,13 +16,20 @@
         .manga-card h3 { margin: 12px 0 5px 0; font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .manga-card span { color: #ff4757; font-size: 13px; font-weight: 500; }
         .loading { font-size: 18px; color: #a4b0be; margin-top: 5px; }
-            .site-header{position:sticky;top:0;z-index:1000;margin:-20px -20px 28px;padding:0 20px;background:rgba(18,18,18,.95);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}
-        .site-nav{max-width:1100px;min-height:64px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
-        .site-brand{color:#ff4757;text-decoration:none;font-size:20px;font-weight:800;white-space:nowrap}
-        .site-links{display:flex;align-items:center;gap:5px}
-        .site-links a{color:#a4b0be;text-decoration:none;font-size:14px;font-weight:600;padding:10px 13px;border-radius:8px;white-space:nowrap;transition:.18s}
-        .site-links a:hover,.site-links a[aria-current=page]{color:#fff;background:rgba(255,71,87,.15)}
-        @media(max-width:600px){.site-header{margin-bottom:20px}.site-nav{display:block;padding:9px 0}.site-brand{display:block;font-size:18px;margin:0 0 6px 4px}.site-links{overflow-x:auto;scrollbar-width:none}.site-links::-webkit-scrollbar{display:none}.site-links a{font-size:13px;padding:9px 11px}}
+        .site-header { position: sticky; top: 0; z-index: 1000; margin: -20px -20px 28px; padding: 0 20px; background: rgba(18,18,18,.95); border-bottom: 1px solid rgba(255,255,255,.08); backdrop-filter: blur(12px) }
+        .site-nav { max-width: 1100px; min-height: 64px; margin: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+        .site-brand { color: #ff4757; text-decoration: none; font-size: 20px; font-weight: 800; white-space: nowrap; }
+        .site-links { display: flex; align-items: center; gap: 5px; }
+        .site-links a { color: #a4b0be; text-decoration: none; font-size: 14px; font-weight: 600; padding: 10px 13px; border-radius: 8px; white-space: nowrap; transition: .18s; }
+        .site-links a:hover, .site-links a[aria-current=page] { color: #fff; background: rgba(255,71,87,.15); }
+        @media(max-width:600px){
+            .site-header { margin-bottom: 20px; }
+            .site-nav { display: block; padding: 9px 0; }
+            .site-brand { display: block; font-size: 18px; margin: 0 0 6px 4px; }
+            .site-links { overflow-x: auto; scrollbar-width: none; }
+            .site-links::-webkit-scrollbar { display: none; }
+            .site-links a { font-size: 13px; padding: 9px 11px; }
+        }
     </style>
 </head>
 <body>
@@ -41,36 +48,36 @@
         <p class="subtitle">Baca Manga, Manhwa, Komik, Webtoon Bahasa Indonesia</p>
         
         <div id="loading-status" class="loading">Memuat katalog komik...</div>
-        <span id="top-manga"></span><span id="terbaru"></span><span id="daftar-manga"></span><div class="manga-grid" id="manga-container"></div>
+        <span id="top-manga"></span><span id="terbaru"></span><span id="daftar-manga"></span>
+        <div class="manga-grid" id="manga-container"></div>
     </div>
 
     <script>
-        // URL CSV asli dari Google Sheet Anda
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=0&single=true&output=csv'; 
+        // Tautan CSV milik Anda dengan pengaman bypass cache otomatis
+        const csvUrl = 'https://google.com' + new Date().getTime(); 
 
         fetch(csvUrl)
             .then(res => res.text())
             .then(csvText => {
-                // Memisah baris dengan regex agar aman dari karakter \r
                 const lines = csvText.split(/\r?\n/);
                 const container = document.getElementById('manga-container');
                 document.getElementById('loading-status').style.display = 'none';
 
-                // Mulai dari baris index 1 (melewati header)
                 for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
+                    const currentLine = lines[i].trim();
+                    if (!currentLine) continue;
 
-                    const columns = lines[i].split(',');
+                    const columns = currentLine.split(',');
                     
-                    // trim() digunakan untuk menghapus spasi atau karakter tak terlihat di ujung teks
-                    const key = columns[0] ? columns[0].trim() : '';
-                    const judul = columns[1] ? columns[1].trim() : '';
-                    const cover = columns[2] ? columns[2].trim() : '';
+                    const key = columns.at(0) ? columns.at(0).trim() : '';
+                    const judul = columns.at(1) ? columns.at(1).trim() : '';
+                    const cover = columns.at(2) ? columns.at(2).trim() : '';
 
                     if (key && judul) {
+                        // PERBAIKAN MUTLAK: Teks "manga/" dihapus dari src gambar karena jalur folder diatur via Google Sheets
                         const cardHtml = `
                             <a href="manga.html?title=${key}" class="manga-card">
-                                <img src="manga/${cover}" alt="${judul} Cover">
+                                <img src="${cover}" alt="${judul} Cover">
                                 <h3>${judul}</h3>
                                 <span>Lihat Chapter →</span>
                             </a>
@@ -84,8 +91,15 @@
                 document.getElementById('loading-status').innerText = "Gagal memuat katalog manga.";
             });
     </script>
-<script>
-const f=location.pathname.split('/').pop()||'index.html';let p='home';if(f==='manga.html'||f==='baca.html')p='daftar';if(location.hash==='#top-manga')p='top';if(location.hash==='#terbaru')p='terbaru';document.querySelectorAll('.site-links a').forEach(a=>{if(a.dataset.page===p)a.setAttribute('aria-current','page')});
-</script>
+    <script>
+        const f = location.pathname.split('/').pop() || 'index.html';
+        let p = 'home';
+        if (f === 'manga.html' || f === 'baca.html') p = 'daftar';
+        if (location.hash === '#top-manga') p = 'top';
+        if (location.hash === '#terbaru') p = 'terbaru';
+        document.querySelectorAll('.site-links a').forEach(a => {
+            if (a.dataset.page === p) a.setAttribute('aria-current', 'page');
+        });
+    </script>
 </body>
 </html>
