@@ -78,54 +78,32 @@
             alert(`Melanjutkan membaca halaman ${page} yang disimpan!`);
         }
 
-        document.getElementById('display-title').innerText = `${mangaKey.replace(/-/g, ' ').toUpperCase()} - ${currentChapterId.replace(/-/g, ' ')}`;
+        document.getElementById('display-title').innerText = `${mangaKey.replace(/-/g, ' ').toUpperCase()} - ${currentChapterId ? currentChapterId.replace(/-/g, ' ') : ''}`;
         document.getElementById('total-pages').innerText = totalPages;
         document.getElementById('back-to-list').href = `manga.html?title=${mangaKey}`;
 
         // URL CSV khusus tab chapters milik Anda dengan bypass cache otomatis
         const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
 
-        // Fungsi pemisah CSV pintar (Aman dari tanda koma di dalam teks)
-        function parseCSV(text) {
-            let lines = text.split(/\r?\n/);
-            let result = [];
-            for (let i = 0; i < lines.length; i++) {
-                let line = lines[i].trim();
-                if (!line) continue;
-                
-                let row = [];
-                let inQuotes = false;
-                let currentStr = '';
-                for (let j = 0; j < line.length; j++) {
-                    let char = line[j];
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        row.push(currentStr.trim().replace(/^"|"$/g, ''));
-                        currentStr = '';
-                    } else {
-                        currentStr += char;
-                    }
-                }
-                row.push(currentStr.trim().replace(/^"|"$/g, ''));
-                result.push(row);
-            }
-            return result;
-        }
-
         // Mengambil data untuk Dropdown Selector via CSV Google Sheets
         fetch(chaptersCsvUrl)
             .then(res => res.text())
             .then(csvText => {
-                const parsedData = parseCSV(csvText);
+                const lines = csvText.split(/\r?\n/);
                 document.querySelectorAll('.ch-dropdown').forEach(dropdown => {
                     dropdown.innerHTML = ''; 
-                    for (let i = 1; i < parsedData.length; i++) {
-                        const columns = parsedData[i];
+                    for (let i = 1; i < lines.length; i++) {
+                        const currentLine = lines[i].trim();
+                        if (!currentLine) continue;
+                        
+                        const columns = currentLine.split(',');
                         if (columns.length < 4) continue;
 
-                        // Destructuring Assignment: Ekstraksi kolom tanpa indeks angka agar anti-error
-                        const [mKey, chId, chName, totalP] = columns;
+                        // Menggunakan metode .at() yang aman dan anti-terpotong sistem otomatis
+                        const mKey = columns.at(0) ? columns.at(0).trim().replace(/^"|"$/g, '') : '';
+                        const chId = columns.at(1) ? columns.at(1).trim().replace(/^"|"$/g, '') : '';
+                        const chName = columns.at(2) ? columns.at(2).trim().replace(/^"|"$/g, '') : '';
+                        const totalP = columns.at(3) ? columns.at(3).trim().replace(/^"|"$/g, '') : '1';
 
                         if (mKey && mKey.toLowerCase() === mangaKey.toLowerCase()) {
                             const option = document.createElement('option');
