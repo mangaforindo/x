@@ -10,7 +10,7 @@
         h1 { color: #ff4757; font-size: 2.5rem; margin-bottom: 5px; }
         p.subtitle { color: #a4b0be; margin-bottom: 30px; }
         .manga-grid { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-top: 20px; }
-        .manga-card { width: 200px; background-color: #1e1e1e; padding: 12px; border-radius: 10px; box-shadow: 0 4px 15 rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; text-decoration: none; color: white; text-align: left; }
+        .manga-card { width: 200px; background-color: #1e1e1e; padding: 12px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; text-decoration: none; color: white; text-align: left; }
         .manga-card:hover { transform: translateY(-8px); background-color: #2f3542; }
         .manga-card img { width: 100%; height: 280px; object-fit: cover; border-radius: 8px; }
         .manga-card h3 { margin: 12px 0 5px 0; font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -22,7 +22,7 @@
 
     <div class="container">
         <h1>Manga4indo</h1>
-        <p class="subtitle">Baca Manga, Manhwa, Komik, Weebtoon Bahasa Indonesia</p>
+        <p class="subtitle">Baca Manga, Manhwa, Komik, Webtoon Bahasa Indonesia</p>
         
         <!-- Status Memuat Data -->
         <div id="loading-status" class="loading">Memuat katalog komik...</div>
@@ -54,14 +54,14 @@
 
                 // Lakukan perulangan untuk memunculkan card manga
                 rows.forEach(row => {
-                    // Validasi keamanan: pastikan struktur kolom Google Sheet terisi minimal 3 kolom pertama
+                    // Validasi keamanan: pastikan array struktur kolom dari Google Sheet ada isinya
                     if (row.c && row.c[0] && row.c[1] && row.c[2]) {
-                        const key = row.c[0].v;   // Kolom A (Key)
-                        const judul = row.c[1].v; // Kolom B (Judul)
-                        const cover = row.c[2].v; // Kolom C (Cover)
+                        const key = row.c[0].v ? row.c[0].v.toString().trim() : '';   // Kolom A (Key)
+                        const judul = row.c[1].v ? row.c[1].v.toString().trim() : ''; // Kolom B (Judul)
+                        const cover = row.c[2].v ? row.c[2].v.toString().trim() : ''; // Kolom C (Cover)
 
                         // Filter pengaman agar teks judul kolom/header tidak ikut terbuat menjadi card
-                        if (key !== "Key" && key !== "key" && judul !== "Judul") {
+                        if (key && judul && key.toLowerCase() !== "key" && judul.toLowerCase() !== "judul") {
                             const cardHtml = `
                                 <a href="manga.html?title=${key}" class="manga-card">
                                     <img src="manga/${cover}" alt="${judul} Cover">
@@ -76,7 +76,7 @@
             })
             .catch(err => {
                 console.error("Gagal mengambil data: ", err);
-                document.getElementById('loading-status').innerText = "Gagal memuat katalog manga.";
+                document.getElementById('loading-status').innerText = "Gagal memuat katalog manga. Pastikan izin Google Sheets disetel ke Publik (Anyone with the link).";
             });
     </script>
 </body>
