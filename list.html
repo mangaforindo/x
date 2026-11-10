@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0d12">
+    <title>Daftar Manga - Manga4indo</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .list-intro { max-width: 760px; margin: 0 auto 28px; text-align: center; }
+        .list-kicker { display: inline-block; margin-bottom: 12px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+        .list-intro h1 { margin: 0 0 8px; color: var(--text); font-size: clamp(32px, 5vw, 46px); letter-spacing: -1.7px; line-height: 1.1; }
+        .list-intro p { margin: 0; color: var(--muted); }
+        .list-toolbar { display: flex; align-items: center; gap: 12px; max-width: 850px; margin: 26px auto 14px; }
+        .search-wrap { position: relative; flex: 1; }
+        .search-wrap::before { content: "⌕"; position: absolute; left: 15px; top: 50%; transform: translateY(-54%); color: var(--muted); font-size: 23px; pointer-events: none; }
+        .search-input, .sort-select { width: 100%; min-height: 48px; padding: 0 15px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); font: inherit; outline: none; }
+        .search-input { padding-left: 45px; }
+        .search-input::placeholder { color: var(--muted); }
+        .search-input:focus, .sort-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+        .sort-select { width: auto; min-width: 155px; cursor: pointer; }
+        .list-meta { max-width: 850px; margin: 0 auto; display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
+        .list-meta strong { color: var(--text); }
+        .list-grid { max-width: 1000px; margin-left: auto !important; margin-right: auto !important; }
+        .empty-state { display: none; max-width: 850px; margin: 18px auto; padding: 24px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }
+        @media(max-width: 600px) { .list-toolbar { align-items: stretch; flex-direction: column; gap: 9px; } .sort-select { width: 100%; } .list-meta { font-size: 12px; } }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <nav class="site-nav" aria-label="Navigasi utama">
+            <a class="site-brand" href="index.html">Manga4indo</a>
+            <div class="site-links">
+                <a href="index.html" data-page="home">Home</a>
+                <a href="list.html" data-page="daftar">Daftar Manga</a>
+                <a href="index.html#top-manga" data-page="top">Top Manga</a>
+                <a href="index.html#terbaru" data-page="terbaru">Terbaru</a>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="list-intro">
+            <span class="list-kicker">Koleksi Manga</span>
+            <h1>Daftar Manga</h1>
+            <p>Cari manga favoritmu dan pilih judul untuk melihat chapter yang tersedia.</p>
+        </section>
+
+        <div class="list-toolbar">
+            <label class="search-wrap">
+                <span hidden>Cari judul manga</span>
+                <input id="search-input" class="search-input" type="search" placeholder="Cari judul manga..." autocomplete="off">
+            </label>
+            <label>
+                <span hidden>Urutkan manga</span>
+                <select id="sort-select" class="sort-select" aria-label="Urutkan manga">
+                    <option value="asc">Judul: A–Z</option>
+                    <option value="desc">Judul: Z–A</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="list-meta">
+            <span id="result-count">Memuat daftar...</span>
+            <span>Urut berdasarkan judul</span>
+        </div>
+
+        <div id="loading-status" class="loading">Mengambil katalog manga...</div>
+        <div id="manga-container" class="manga-grid list-grid"></div>
+        <div id="empty-state" class="empty-state">Judul manga tidak ditemukan. Coba kata pencarian lain.</div>
+    </main>
+
+    <script>
+        const CATALOG_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=0&single=true&output=csv";
+        const searchInput = document.getElementById("search-input");
+        const sortSelect = document.getElementById("sort-select");
+        const container = document.getElementById("manga-container");
+        const loadingStatus = document.getElementById("loading-status");
+        const resultCount = document.getElementById("result-count");
+        const emptyState = document.getElementById("empty-state");
+        let mangaList = [];
+
+        function parseCSV(text) {
+            const rows = [];
+            let row = [];
+            let value = "";
+            let quoted = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const next = text[i + 1];
+                if (char === '"' && quoted && next === '"') { value += '"'; i++; }
+                else if (char === '"') quoted = !quoted;
+                else if (char === "," && !quoted) { row.push(value); value = ""; }
+                else if ((char === "\n" || char === "\r") && !quoted) {
+                    if (char === "\r" && next === "\n") i++;
+                    row.push(value); rows.push(row); row = []; value = "";
+                } else value += char;
+            }
+            if (value.length || row.length) { row.push(value); rows.push(row); }
+            return rows;
+        }
+
+        function renderManga() {
+            const query = searchInput.value.trim().toLocaleLowerCase("id");
+            const direction = sortSelect.value === "asc" ? 1 : -1;
+            const filtered = mangaList
+                .filter(item => item.title.toLocaleLowerCase("id").includes(query))
+                .sort((a, b) => a.title.localeCompare(b.title, "id", { sensitivity: "base" }) * direction);
+
+            container.replaceChildren();
+            for (const item of filtered) {
+                const card = document.createElement("a");
+                card.className = "manga-card";
+                card.href = `manga.html?title=${encodeURIComponent(item.key)}`;
+
+                const cover = document.createElement("img");
+                cover.src = `manga/${item.cover.split("/").map(encodeURIComponent).join("/")}`;
+                cover.alt = `Sampul ${item.title}`;
+                cover.loading = "lazy";
+                cover.onerror = () => { cover.style.visibility = "hidden"; };
+
+                const title = document.createElement("h3");
+                title.textContent = item.title;
+                const action = document.createElement("span");
+                action.textContent = "Lihat chapter →";
+                card.append(cover, title, action);
+                container.appendChild(card);
+            }
+
+            resultCount.innerHTML = `<strong>${filtered.length}</strong> dari <strong>${mangaList.length}</strong> manga`;
+            emptyState.style.display = filtered.length ? "none" : "block";
+        }
+
+        async function loadCatalog() {
+            try {
+                const response = await fetch(CATALOG_CSV_URL, { cache: "no-store" });
+                if (!response.ok) throw new Error(`Google Sheets merespons ${response.status}`);
+                const rows = parseCSV(await response.text());
+                mangaList = rows.slice(1)
+                    .filter(row => row.length >= 3)
+                    .map(row => ({ key: (row[0] || "").trim(), title: (row[1] || "").trim(), cover: (row[2] || "").trim() }))
+                    .filter(item => item.key && item.title);
+                loadingStatus.style.display = "none";
+                renderManga();
+            } catch (error) {
+                console.error("Gagal memuat katalog manga:", error);
+                loadingStatus.textContent = "Katalog gagal dimuat. Periksa koneksi atau publikasi Google Sheet.";
+                resultCount.textContent = "Daftar manga belum tersedia";
+            }
+        }
+
+        searchInput.addEventListener("input", renderManga);
+        sortSelect.addEventListener("change", renderManga);
+        const currentFile = location.pathname.split("/").pop() || "index.html";
+        document.querySelectorAll(".site-links a").forEach(link => {
+            if ((currentFile === "list.html" && link.dataset.page === "daftar") || (currentFile === "index.html" && link.dataset.page === "home")) {
+                link.setAttribute("aria-current", "page");
+            }
+        });
+        loadCatalog();
+    </script>
+</body>
+</html>
