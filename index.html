@@ -24,7 +24,7 @@
         .site-links a:hover,.site-links a[aria-current=page]{color:#fff;background:rgba(255,71,87,.15)}
         @media(max-width:600px){.site-header{margin-bottom:20px}.site-nav{display:block;padding:9px 0}.site-brand{display:block;font-size:18px;margin:0 0 6px 4px}.site-links{overflow-x:auto;scrollbar-width:none}.site-links::-webkit-scrollbar{display:none}.site-links a{font-size:13px;padding:9px 11px}}
     </style>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
     <header class="site-header"><nav class="site-nav" aria-label="Navigasi utama">
@@ -48,36 +48,77 @@
         // URL CSV asli dari Google Sheet Anda
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=0&single=true&output=csv'; 
 
+        function parseCSV(text) {
+            const rows = [];
+            let row = [], value = '', quoted = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i], next = text[i + 1];
+                if (char === '"' && quoted && next === '"') { value += '"'; i++; }
+                else if (char === '"') quoted = !quoted;
+                else if (char === ',' && !quoted) { row.push(value.trim()); value = ''; }
+                else if ((char === '\n' || char === '\r') && !quoted) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(value.trim());
+                    if (row.some(cell => cell !== '')) rows.push(row);
+                    row = []; value = '';
+                } else value += char;
+            }
+            if (value || row.length) { row.push(value.trim()); rows.push(row); }
+            return rows;
+        }
+
         fetch(csvUrl)
-            .then(res => res.text())
+            .then(res => {
+                if (!res.ok) throw new Error(`Google Sheet merespons ${res.status}`);
+                return res.text();
+            })
             .then(csvText => {
-                // Memisah baris dengan regex agar aman dari karakter \r
-                const lines = csvText.split(/\r?\n/);
+                const rows = parseCSV(csvText);
                 const container = document.getElementById('manga-container');
                 document.getElementById('loading-status').style.display = 'none';
 
-                // Mulai dari baris index 1 (melewati header)
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
+                // Ambil posisi berdasarkan nama header agar kolom deskripsi tidak terbaca sebagai judul/cover.
+                const headers = (rows[0] || []).map(header => header.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+                const findColumn = patterns => headers.findIndex(header => patterns.some(pattern => pattern.test(header)));
+                const keyIndex = findColumn([/mangakey/, /^key$/, /slug/]);
+                const titleIndex = findColumn([/judul/, /title/, /nama manga/, /^manga$/]);
+                const coverIndex = findColumn([/cover/, /sampul/, /gambar/]);
+                const fallback = (index, defaultIndex) => index >= 0 ? index : defaultIndex;
 
-                    const columns = lines[i].split(',');
-                    
-                    // trim() digunakan untuk menghapus spasi atau karakter tak terlihat di ujung teks
-                    const key = columns[0] ? columns[0].trim() : '';
-                    const judul = columns[1] ? columns[1].trim() : '';
-                    const cover = columns[2] ? columns[2].trim() : '';
+                rows.slice(1).forEach(columns => {
+                    const key = columns[fallback(keyIndex, 0)] || '';
+                    const judul = columns[fallback(titleIndex, 1)] || '';
+                    const cover = columns[fallback(coverIndex, 3)] || '';
+                    if (!key || !judul) return;
 
-                    if (key && judul) {
-                        const cardHtml = `
-                            <a href="manga.html?title=${key}" class="manga-card">
-                                <img src="manga/${cover}" alt="${judul} Cover">
-                                <h3>${judul}</h3>
-                                <span>Lihat Chapter →</span>
-                            </a>
-                        `;
-                        container.innerHTML += cardHtml;
+                    const card = document.createElement('a');
+                    card.href = `manga.html?title=${encodeURIComponent(key)}`;
+                    card.className = 'manga-card';
+
+                    const coverBox = document.createElement('div');
+                    coverBox.className = 'home-cover-box';
+                    const placeholder = document.createElement('span');
+                    placeholder.className = 'home-cover-placeholder';
+                    placeholder.textContent = 'Cover belum tersedia';
+                    coverBox.appendChild(placeholder);
+
+                    if (cover) {
+                        const image = document.createElement('img');
+                        const coverPath = cover.split('/').map(encodeURIComponent).join('/');
+                        image.src = `covers/${coverPath}`;
+                        image.alt = `Sampul ${judul}`;
+                        image.addEventListener('load', () => placeholder.remove());
+                        image.addEventListener('error', () => image.remove());
+                        coverBox.appendChild(image);
                     }
-                }
+
+                    const title = document.createElement('h3');
+                    title.textContent = judul;
+                    const link = document.createElement('span');
+                    link.textContent = 'Lihat Chapter →';
+                    card.append(coverBox, title, link);
+                    container.appendChild(card);
+                });
             })
             .catch(err => {
                 console.error("Gagal memuat CSV: ", err);

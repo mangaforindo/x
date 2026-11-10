@@ -275,6 +275,29 @@ button:disabled { opacity: .45; }
 .manga-card {
     text-decoration: none !important;
 }
+.home-cover-box {
+    position: relative;
+    width: 100%;
+    height: 280px;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--surface-hover, #202633);
+}
+.home-cover-box img {
+    position: relative;
+    z-index: 1;
+    display: block;
+}
+.home-cover-placeholder {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 12px;
+    color: var(--muted, #a4b0be);
+    font-size: 13px;
+    text-align: center;
+}
 .container {
     width: 100%;
 }
