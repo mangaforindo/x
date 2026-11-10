@@ -34,6 +34,7 @@
 <body>
 
     <div class="reader-container">
+        <!-- Bar Utilitas Atas -->
         <div class="utility-bar">
             <button class="btn-util" onclick="toggleTheme()" id="theme-btn">☀️ Light Mode</button>
             <button class="btn-util" onclick="saveBookmark()" style="background-color: #2ed573;">📌 Simpan Halaman</button>
@@ -42,14 +43,17 @@
         <h2 id="display-title">Memuat...</h2>
         <div class="info">Halaman <span id="current-page">1</span> / <span id="total-pages">--</span></div>
         
+        <!-- Navigasi Atas -->
         <div class="nav-buttons">
             <button class="btn-prev" onclick="changePage(-1)">◀ Prev</button>
             <select class="dropdown-select ch-dropdown" onchange="navigateChapter(this.value)"></select>
             <button class="btn-next" onclick="changePage(1)">Next ▶</button>
         </div>
 
+        <!-- Area Gambar Utama -->
         <img id="manga-img" src="" alt="Manga Page" class="manga-page" onclick="changePage(1)">
 
+        <!-- Navigasi Bawah -->
         <div class="nav-buttons">
             <button class="btn-prev" onclick="changePage(-1)">◀ Prev</button>
             <select class="dropdown-select ch-dropdown" onchange="navigateChapter(this.value)"></select>
@@ -78,44 +82,52 @@
         document.getElementById('total-pages').innerText = totalPages;
         document.getElementById('back-to-list').href = `manga.html?title=${mangaKey}`;
 
+        // URL CSV khusus tab chapters milik Anda dengan bypass cache otomatis
         const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
 
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim());
-                    current = '';
-                } else {
-                    current += char;
+        // Fungsi pemisah CSV pintar (Aman dari tanda koma di dalam teks)
+        function parseCSV(text) {
+            let lines = text.split(/\r?\n/);
+            let result = [];
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
+                
+                let row = [];
+                let inQuotes = false;
+                let currentStr = '';
+                for (let j = 0; j < line.length; j++) {
+                    let char = line[j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(currentStr.trim().replace(/^"|"$/g, ''));
+                        currentStr = '';
+                    } else {
+                        currentStr += char;
+                    }
                 }
+                row.push(currentStr.trim().replace(/^"|"$/g, ''));
+                result.push(row);
             }
-            result.push(current.trim());
             return result;
         }
 
+        // Mengambil data untuk Dropdown Selector via CSV Google Sheets
         fetch(chaptersCsvUrl)
             .then(res => res.text())
             .then(csvText => {
-                const lines = csvText.split(/\r?\n/);
+                const parsedData = parseCSV(csvText);
                 document.querySelectorAll('.ch-dropdown').forEach(dropdown => {
-                    dropdown.innerHTML = ''; // Reset isi awal
-                    for (let i = 1; i < lines.length; i++) {
-                        if (!lines[i].trim()) continue;
-                        const columns = parseCSVLine(lines[i]);
+                    dropdown.innerHTML = ''; 
+                    for (let i = 1; i < parsedData.length; i++) {
+                        const columns = parsedData[i];
                         if (columns.length < 4) continue;
 
-                        const mKey = columns[0].replace(/^"|"$/g, '').trim();
-                        const chId = columns[1].replace(/^"|"$/g, '').trim();
-                        const chName = columns[2].replace(/^"|"$/g, '').trim();
-                        const totalP = columns[3].replace(/^"|"$/g, '').trim();
+                        // Destructuring Assignment: Ekstraksi kolom tanpa indeks angka agar anti-error
+                        const [mKey, chId, chName, totalP] = columns;
 
-                        if (mKey.toLowerCase() === mangaKey.toLowerCase()) {
+                        if (mKey && mKey.toLowerCase() === mangaKey.toLowerCase()) {
                             const option = document.createElement('option');
                             option.value = `baca.html?title=${mangaKey}&ch=${chId}&total=${totalP}`;
                             option.text = chName;
@@ -127,6 +139,7 @@
             });
 
         function renderPage() {
+            // Mengubah ke penamaan gambar format 3 digit (001.jpg, 002.jpg, dst)
             const formattedPage = String(page).padStart(3, '0');
             document.getElementById('manga-img').src = `manga/${mangaKey}/${currentChapterId}/${formattedPage}${fileExt}`;
             document.getElementById('current-page').innerText = page;
