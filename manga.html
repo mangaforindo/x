@@ -36,10 +36,8 @@
             document.getElementById('manga-title').innerText = mangaKey.replace(/-/g, ' ');
         }
 
-        // Tautan CSV milik Anda dengan bypass cache otomatis
         const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
 
-        // Parser CSV standar yang aman dan andal
         function parseCSV(text) {
             let lines = text.split(/\r?\n/);
             let result = [];
@@ -81,16 +79,13 @@
 
                 let foundChapter = false;
 
-                // Loop baris data dari Google Sheet (melewati baris header ke-0)
+                // Melewati baris ke-0 (header)
                 for (let i = 1; i < parsedData.length; i++) {
-                    const rowData = parsedData[i];
-                    if (rowData.length < 4) continue;
+                    const columns = parsedData[i];
+                    if (columns.length < 4) continue;
 
-                    // Pemanggilan data array menggunakan indeks angka yang sudah diperbaiki
-                    const mKey = rowData[0];   // Kolom A (MangaKey)
-                    const chId = rowData[1];   // Kolom B (ChapterId)
-                    const chName = rowData[2]; // Kolom C (ChapterName)
-                    const totalP = rowData[3]; // Kolom D (TotalPages)
+                    // Trik Destructuring: Otomatis membagi isi kolom A, B, C, D ke variabel tanpa indeks angka
+                    const [mKey, chId, chName, totalP] = columns;
 
                     if (mKey && mKey.toLowerCase() === mangaKey.toLowerCase()) {
                         foundChapter = true;
@@ -107,13 +102,13 @@
 
                 if(!foundChapter) {
                     document.getElementById('loading-status').style.display = 'block';
-                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini. Periksa kesamaan tulisan di Google Sheets.";
+                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini.";
                 }
             })
             .catch(err => {
                 console.error("Gagal memuat chapter: ", err);
                 document.getElementById('loading-status').style.display = 'block';
-                document.getElementById('loading-status').innerText = "Gagal memuat daftar chapter. Pastikan Google Sheet Anda tetap terpublikasi.";
+                document.getElementById('loading-status').innerText = "Gagal memuat daftar chapter.";
             });
     </script>
 </body>
