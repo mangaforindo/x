@@ -36,9 +36,9 @@
             document.getElementById('manga-title').innerText = mangaKey.replace(/-/g, ' ');
         }
 
-        const chaptersCsvUrl = 'https://google.com';
+        // Trik khusus: Menambahkan penanda waktu (?t=...) agar Google Sheet dan GitHub selalu memberikan data paling baru (Bypass Cache)
+        const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
 
-        // Fungsi pintar untuk memisah CSV dengan aman walau ada tanda koma di dalam teks
         function parseCSVLine(line) {
             const result = [];
             let current = '';
@@ -71,13 +71,13 @@
                 for (let i = 1; i < lines.length; i++) {
                     if (!lines[i].trim()) continue;
 
-                    // Menggunakan parser pintar anti-gagal
                     const columns = parseCSVLine(lines[i]);
+                    if (columns.length < 4) continue;
                     
-                    const mKey = columns[0] ? columns[0].replace(/^"|"$/g, '') : '';   // Kolom A
-                    const chId = columns[1] ? columns[1].replace(/^"|"$/g, '') : '';   // Kolom B
-                    const chName = columns[2] ? columns[2].replace(/^"|"$/g, '') : ''; // Kolom C
-                    const totalP = columns[3] ? columns[3].replace(/^"|"$/g, '') : '1'; // Kolom D
+                    const mKey = columns[0].replace(/^"|"$/g, '').trim();   // Kolom A
+                    const chId = columns[1].replace(/^"|"$/g, '').trim();   // Kolom B
+                    const chName = columns[2].replace(/^"|"$/g, '').trim(); // Kolom C
+                    const totalP = columns[3].replace(/^"|"$/g, '').trim(); // Kolom D
 
                     if (mKey.toLowerCase() === mangaKey.toLowerCase()) {
                         foundChapter = true;
@@ -94,7 +94,7 @@
 
                 if(!foundChapter) {
                     document.getElementById('loading-status').style.display = 'block';
-                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini. Periksa kesamaan kolom MangaKey di Google Sheets.";
+                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini. Periksa kesamaan data di Google Sheets.";
                 }
             })
             .catch(err => {
