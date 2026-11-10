@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MangaHub - Katalog Manga Online</title>
+    <style>
+        body { 
+            background-color: #121212; 
+            color: #ffffff; 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        .container { 
+            max-width: 1000px; 
+            margin: 0 auto; 
+            text-align: center; 
+        }
+        h1 { 
+            color: #ff4757; 
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+        p.subtitle {
+            color: #a4b0be;
+            margin-bottom: 30px;
+        }
+        .manga-grid { 
+            display: flex; 
+            justify-content: center; 
+            gap: 25px; 
+            flex-wrap: wrap; 
+            margin-top: 20px; 
+        }
+        .manga-card { 
+            width: 200px; 
+            background-color: #1e1e1e; 
+            padding: 12px; 
+            border-radius: 10px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+            transition: transform 0.2s, background-color 0.2s; 
+            text-decoration: none; 
+            color: white; 
+            text-align: left;
+        }
+        .manga-card:hover { 
+            transform: translateY(-8px); 
+            background-color: #2f3542;
+        }
+        .manga-card img { 
+            width: 100%; 
+            height: 280px; 
+            object-fit: cover; 
+            border-radius: 8px; 
+        }
+        .manga-card h3 { 
+            margin: 12px 0 5px 0; 
+            font-size: 16px; 
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .manga-card span {
+            color: #ff4757;
+            font-size: 13px;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>📚 Katalog Manga Online</h1>
+        <p class="subtitle">Pilih komik favoritmu dan mulai membaca gratis</p>
+        
+        <div class="manga-grid">
+            
+            <!-- CARD MANGA 1: GOBLIN SLAYER -->
+            <a href="manga.html?title=goblin" class="manga-card">
+                <img src="manga/goblin-cover.jpg" alt="Goblin Slayer Cover">
+                <h3>Goblin Slayer</h3>
+                <span>Lihat Chapter →</span>
+            </a>
+
+            <!-- CARD MANGA 2: ONE PIECE -->
+            <a href="manga.html?title=one-piece" class="manga-card">
+                <img src="manga/one-piece-cover.jpg" alt="One Piece Cover">
+                <h3>One Piece</h3>
+                <span>Lihat Chapter →</span>
+            </a>
+
+        </div>
+    </div>
+
+</body>
+</html>
