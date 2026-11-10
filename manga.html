@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar Chapter</title>
+    <style>
+        body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        h1 { color: #ff4757; text-transform: uppercase; margin-bottom: 5px; }
+        .back-btn { color: #a4b0be; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 20px; }
+        .back-btn:hover { color: #ff4757; }
+        .chapter-list { list-style: none; padding: 0; margin-top: 30px; }
+        .chapter-item { background-color: #1e1e1e; margin-bottom: 10px; border-radius: 6px; transition: 0.2s; }
+        .chapter-item:hover { background-color: #2f3542; }
+        .chapter-item a { display: flex; justify-content: space-between; padding: 15px 20px; color: white; text-decoration: none; font-weight: bold; }
+        .page-count { color: #a4b0be; font-weight: normal; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-btn">← Kembali ke Home</a>
+        <h1 id="manga-title">Memuat Manga...</h1>
+        <p style="color: #a4b0be;">Silakan pilih chapter untuk mulai membaca:</p>
+        
+        <ul class="chapter-list" id="list-container">
+            <!-- Diisi otomatis oleh JavaScript -->
+        </ul>
+    </div>
+
+    <script>
+        // DATABASE HUBUNGAN MANGA DAN CHAPTER
+        const database = {
+            "goblin": {
+                name: "Goblin Slayer",
+                chapters: [
+                    { id: "chapter-02", name: "Chapter 02: Pertempuran Sengit", totalPages: 2 },
+                    { id: "chapter-01", name: "Chapter 01: Awal Mula Petualangan", totalPages: 2 }
+                ]
+            },
+            "one-piece": {
+                name: "One Piece",
+                chapters: [
+                    { id: "chapter-02", name: "Chapter 02: Manusia Karet", totalPages: 2 },
+                    { id: "chapter-01", name: "Chapter 01: Fajar Petualangan", totalPages: 3 }
+                ]
+            }
+        };
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const mangaKey = urlParams.get('title');
+
+        if (database[mangaKey]) {
+            const currentManga = database[mangaKey];
+            document.getElementById('manga-title').innerText = currentManga.name;
+
+            const listContainer = document.getElementById('list-container');
+            currentManga.chapters.forEach(ch => {
+                const li = document.createElement('li');
+                li.className = 'chapter-item';
+                li.innerHTML = `
+                    <a href="baca.html?title=${mangaKey}&ch=${ch.id}&total=${ch.totalPages}">
+                        <span>${ch.name}</span>
+                        <span class="page-count">${ch.totalPages} Hal</span>
+                    </a>`;
+                listContainer.appendChild(li);
+            });
+        } else {
+            document.getElementById('manga-title').innerText = "Manga Tidak Ditemukan";
+        }
+    </script>
+</body>
+</html>
