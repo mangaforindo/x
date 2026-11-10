@@ -37,6 +37,7 @@
         .site-links a:hover,.site-links a[aria-current=page]{color:#fff;background:rgba(255,71,87,.15)}
         @media(max-width:600px){.site-header{margin-bottom:20px}.site-nav{display:block;padding:9px 0}.site-brand{display:block;font-size:18px;margin:0 0 6px 4px}.site-links{overflow-x:auto;scrollbar-width:none}.site-links::-webkit-scrollbar{display:none}.site-links a{font-size:13px;padding:9px 11px}}
     </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header class="site-header"><nav class="site-nav" aria-label="Navigasi utama">
@@ -53,7 +54,6 @@
         <!-- Bar Utilitas Atas -->
         <div class="utility-bar">
             <button class="btn-util" onclick="toggleTheme()" id="theme-btn">☀️ Light Mode</button>
-            <button class="btn-util" onclick="saveBookmark()" style="background-color: #2ed573;">📌 Simpan Halaman</button>
         </div>
 
         <h2 id="display-title">Memuat...</h2>
@@ -86,15 +86,7 @@
         let currentChapterId = urlParams.get('ch');
         let totalPages = parseInt(urlParams.get('total')) || 1;
         let page = 1;
-
-        const savedPageKey = `bookmark_${mangaKey}_${currentChapterId}`;
-        const hasBookmark = localStorage.getItem(savedPageKey);
-        if(hasBookmark) {
-            page = parseInt(hasBookmark);
-            alert(`Melanjutkan membaca halaman ${page} yang disimpan!`);
-        }
-
-        document.getElementById('display-title').innerText = `${mangaKey.replace(/-/g, ' ').toUpperCase()} - ${currentChapterId ? currentChapterId.replace(/-/g, ' ') : ''}`;
+document.getElementById('display-title').innerText = `${mangaKey.replace(/-/g, ' ').toUpperCase()} - ${currentChapterId ? currentChapterId.replace(/-/g, ' ') : ''}`;
         document.getElementById('total-pages').innerText = totalPages;
         document.getElementById('back-to-list').href = `manga.html?title=${mangaKey}`;
 
@@ -151,13 +143,7 @@
         }
 
         function navigateChapter(url) { window.location.href = url; }
-        
-        function saveBookmark() {
-            localStorage.setItem(savedPageKey, page);
-            alert(`Halaman ${page} disimpan!`);
-        }
-
-        function toggleTheme() {
+function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme');
             let targetTheme = 'dark';
             if (currentTheme === 'dark' || !currentTheme) {
