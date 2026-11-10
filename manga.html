@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Chapter</title>
+    <title>Daftar Chapter - Manga4indo</title>
     <style>
         body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 700px; margin: 0 auto; }
@@ -36,10 +36,10 @@
             document.getElementById('manga-title').innerText = mangaKey.replace(/-/g, ' ');
         }
 
-        // Tautan CSV khusus tab chapters milik Anda dengan sistem pencegah cache
+        // Tautan CSV khusus tab chapters dengan pengaman cache waktu nyata
         const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
 
-        // Parser khusus untuk memproses baris CSV dengan aman
+        // Fungsi pemisah baris CSV pintar anti-gagal terhadap tanda koma di dalam teks
         function parseCSVLine(line) {
             const result = [];
             let current = '';
@@ -75,11 +75,11 @@
                     const columns = parseCSVLine(lines[i]);
                     if (columns.length < 4) continue;
                     
-                    // PERBAIKAN: Mengembalikan sistem penomoran indeks array yang benar [0, 1, 2, 3]
-                    const mKey = columns[0].replace(/^"|"$/g, '').trim();   // Kolom A (MangaKey)
-                    const chId = columns[1].replace(/^"|"$/g, '').trim();   // Kolom B (ChapterId)
-                    const chName = columns[2].replace(/^"|"$/g, '').trim(); // Kolom C (ChapterName)
-                    const totalP = columns[3].replace(/^"|"$/g, '').trim(); // Kolom D (TotalPages)
+                    // INDEKS ARRAY SUDAH DIPERBAIKI SECARA LENGKAP ([0], [1], [2], [3])
+                    const mKey = columns[0].replace(/^"|"$/g, '').trim();   // Kolom A: MangaKey
+                    const chId = columns[1].replace(/^"|"$/g, '').trim();   // Kolom B: ChapterId
+                    const chName = columns[2].replace(/^"|"$/g, '').trim(); // Kolom C: ChapterName
+                    const totalP = columns[3].replace(/^"|"$/g, '').trim(); // Kolom D: TotalPages
 
                     if (mKey.toLowerCase() === mangaKey.toLowerCase()) {
                         foundChapter = true;
@@ -96,7 +96,7 @@
 
                 if(!foundChapter) {
                     document.getElementById('loading-status').style.display = 'block';
-                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini. Periksa kesamaan data di Google Sheets.";
+                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini. Periksa kesamaan kolom MangaKey di Google Sheets.";
                 }
             })
             .catch(err => {
