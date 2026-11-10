@@ -3,96 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MangaHub - Katalog Manga Online</title>
+    <title>MangaHub - Katalog Manga Sheet CMS</title>
     <style>
-        body { 
-            background-color: #121212; 
-            color: #ffffff; 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            margin: 0; 
-            padding: 20px; 
-        }
-        .container { 
-            max-width: 1000px; 
-            margin: 0 auto; 
-            text-align: center; 
-        }
-        h1 { 
-            color: #ff4757; 
-            font-size: 2.5rem;
-            margin-bottom: 5px;
-        }
-        p.subtitle {
-            color: #a4b0be;
-            margin-bottom: 30px;
-        }
-        .manga-grid { 
-            display: flex; 
-            justify-content: center; 
-            gap: 25px; 
-            flex-wrap: wrap; 
-            margin-top: 20px; 
-        }
-        .manga-card { 
-            width: 200px; 
-            background-color: #1e1e1e; 
-            padding: 12px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
-            transition: transform 0.2s, background-color 0.2s; 
-            text-decoration: none; 
-            color: white; 
-            text-align: left;
-        }
-        .manga-card:hover { 
-            transform: translateY(-8px); 
-            background-color: #2f3542;
-        }
-        .manga-card img { 
-            width: 100%; 
-            height: 280px; 
-            object-fit: cover; 
-            border-radius: 8px; 
-        }
-        .manga-card h3 { 
-            margin: 12px 0 5px 0; 
-            font-size: 16px; 
-            font-weight: bold;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .manga-card span {
-            color: #ff4757;
-            font-size: 13px;
-            font-weight: 500;
-        }
+        body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; text-align: center; }
+        h1 { color: #ff4757; font-size: 2.5rem; margin-bottom: 5px; }
+        p.subtitle { color: #a4b0be; margin-bottom: 30px; }
+        .manga-grid { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-top: 20px; }
+        .manga-card { width: 200px; background-color: #1e1e1e; padding: 12px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; text-decoration: none; color: white; text-align: left; }
+        .manga-card:hover { transform: translateY(-8px); background-color: #2f3542; }
+        .manga-card img { width: 100%; height: 280px; object-fit: cover; border-radius: 8px; }
+        .manga-card h3 { margin: 12px 0 5px 0; font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .manga-card span { color: #ff4757; font-size: 13px; font-weight: 500; }
+        .loading { font-size: 18px; color: #a4b0be; margin-top: 5px; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <h1>📚 Katalog Manga Online</h1>
-        <p class="subtitle">Pilih komik favoritmu dan mulai membaca gratis</p>
+        <p class="subtitle">Dikelola otomatis via Google Sheets</p>
         
-        <div class="manga-grid">
-            
-            <!-- CARD MANGA 1: GOBLIN SLAYER -->
-            <a href="manga.html?title=goblin" class="manga-card">
-                <img src="manga/goblin-cover.jpg" alt="Goblin Slayer Cover">
-                <h3>Goblin Slayer</h3>
-                <span>Lihat Chapter →</span>
-            </a>
+        <!-- Status Memuat Data -->
+        <div id="loading-status" class="loading">Memuat katalog komik...</div>
 
-            <!-- CARD MANGA 2: ONE PIECE -->
-            <a href="manga.html?title=one-piece" class="manga-card">
-                <img src="manga/one-piece-cover.jpg" alt="One Piece Cover">
-                <h3>One Piece</h3>
-                <span>Lihat Chapter →</span>
-            </a>
-
-        </div>
+        <!-- Grid Tempat Manga Muncul -->
+        <div class="manga-grid" id="manga-container"></div>
     </div>
 
+    <script>
+        // ========================================================
+        // MASUKKAN ID GOOGLE SHEET ANDA DI BAWAH INI
+        // ========================================================
+        const SHEET_ID = '1dYtDe9mcD9Zvn5NfuXf6DA-vpA6TGzLbs-jcQw-0Vm8'; // <-- Ganti dengan ID Sheet Anda
+        const SHEET_NAME = 'manga';
+
+        // Endpoint rahasia untuk mengubah sheet menjadi data JSON bersih
+        const jsonUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+
+        // Fungsi mengambil data dari Google Sheets
+        fetch(jsonUrl)
+            .then(res => res.text())
+            .then(data => {
+                // Bersihkan teks respon Google agar menjadi objek JSON valid
+                const jsonText = data.match(/(?<="table":).*(?=}\);)/g)[0];
+                const jsonData = JSON.parse(jsonText);
+                const rows = jsonData.rows;
+
+                const container = document.getElementById('manga-container');
+                document.getElementById('loading-status').style.display = 'none';
+
+                // Lakukan perulangan untuk memunculkan card manga
+                rows.forEach(row => {
+                    const key = row.c[0] ? row.c[0].v : '';   // Kolom A (Key)
+                    const judul = row.c[1] ? row.c[1].v : ''; // Kolom B (Judul)
+                    const cover = row.c[2] ? row.c[2].v : ''; // Kolom C (Cover)
+
+                    if (key && judul) {
+                        // Membuat HTML Card untuk setiap baris di Google Sheets
+                        const cardHtml = `
+                            <a href="manga.html?title=${key}" class="manga-card">
+                                <img src="manga/${cover}" alt="${judul} Cover">
+                                <h3>${judul}</h3>
+                                <span>Lihat Chapter →</span>
+                            </a>
+                        `;
+                        container.innerHTML += cardHtml;
+                    }
+                });
+            })
+            .catch(err => {
+                console.error("Gagal mengambil data: ", err);
+                document.getElementById('loading-status').innerText = "Gagal memuat katalog manga.";
+            });
+    </script>
 </body>
 </html>
