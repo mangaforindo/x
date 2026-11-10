@@ -15,6 +15,7 @@
         .chapter-item:hover { background-color: #2f3542; }
         .chapter-item a { display: flex; justify-content: space-between; padding: 15px 20px; color: white; text-decoration: none; font-weight: bold; }
         .page-count { color: #a4b0be; font-weight: normal; font-size: 14px; }
+        .loading { font-size: 18px; color: #a4b0be; margin-top: 20px; text-align: center; }
     </style>
 </head>
 <body>
@@ -23,51 +24,68 @@
         <h1 id="manga-title">Memuat Manga...</h1>
         <p style="color: #a4b0be;">Silakan pilih chapter untuk mulai membaca:</p>
         
-        <ul class="chapter-list" id="list-container">
-            <!-- Diisi otomatis oleh JavaScript -->
-        </ul>
+        <div id="loading-status" class="loading">Mengambil daftar chapter...</div>
+        <ul class="chapter-list" id="list-container"></ul>
     </div>
 
     <script>
-        // DATABASE HUBUNGAN MANGA DAN CHAPTER
-        const database = {
-            "goblin": {
-                name: "Goblin Slayer",
-                chapters: [
-                    { id: "chapter-02", name: "Chapter 02: Pertempuran Sengit", totalPages: 2 },
-                    { id: "chapter-01", name: "Chapter 01: Awal Mula Petualangan", totalPages: 2 }
-                ]
-            },
-            "one-piece": {
-                name: "One Piece",
-                chapters: [
-                    { id: "chapter-02", name: "Chapter 02: Manusia Karet", totalPages: 2 },
-                    { id: "chapter-01", name: "Chapter 01: Fajar Petualangan", totalPages: 3 }
-                ]
-            }
-        };
+        // ========================================================
+        // MASUKKAN ID GOOGLE SHEET ANDA DI BAWAH INI
+        // ========================================================
+        const SHEET_ID = '1A2B3C4D5E6F7G8H9I0J'; // <-- Ganti dengan ID Sheet Anda yang sama
+        const SHEET_NAME = 'chapters';
 
         const urlParams = new URLSearchParams(window.location.search);
         const mangaKey = urlParams.get('title');
 
-        if (database[mangaKey]) {
-            const currentManga = database[mangaKey];
-            document.getElementById('manga-title').innerText = currentManga.name;
-
-            const listContainer = document.getElementById('list-container');
-            currentManga.chapters.forEach(ch => {
-                const li = document.createElement('li');
-                li.className = 'chapter-item';
-                li.innerHTML = `
-                    <a href="baca.html?title=${mangaKey}&ch=${ch.id}&total=${ch.totalPages}">
-                        <span>${ch.name}</span>
-                        <span class="page-count">${ch.totalPages} Hal</span>
-                    </a>`;
-                listContainer.appendChild(li);
-            });
-        } else {
-            document.getElementById('manga-title').innerText = "Manga Tidak Ditemukan";
+        // Mengatur judul utama sementara berdasarkan parameter URL
+        if(mangaKey) {
+            document.getElementById('manga-title').innerText = mangaKey.replace('-', ' ');
         }
+
+        const jsonUrl = `https://google.com{SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+
+        fetch(jsonUrl)
+            .then(res => res.text())
+            .then(data => {
+                const jsonText = data.match(/(?<="table":).*(?=}\);)/g);
+                const jsonData = JSON.parse(jsonText);
+                const rows = jsonData.rows;
+
+                const listContainer = document.getElementById('list-container');
+                document.getElementById('loading-status').style.display = 'none';
+
+                let foundChapter = false;
+
+                rows.forEach(row => {
+                    const mKey = row.c ? row.c.v : '';  // Kolom A (MangaKey)
+                    const chId = row.c ? row.c.v : '';  // Kolom B (ChapterId)
+                    const chName = row.c ? row.c.v : '';// Kolom C (ChapterName)
+                    const totalP = row.c ? row.c.v : 1; // Kolom D (TotalPages)
+
+                    // Hanya tampilkan chapter yang COCOK dengan manga yang dipilih
+                    if (mKey === mangaKey) {
+                        foundChapter = true;
+                        const li = document.createElement('li');
+                        li.className = 'chapter-item';
+                        li.innerHTML = `
+                            <a href="baca.html?title=${mangaKey}&ch=${chId}&total=${totalP}">
+                                <span>${chName}</span>
+                                <span class="page-count">${totalP} Hal</span>
+                            </a>`;
+                        listContainer.appendChild(li);
+                    }
+                });
+
+                if(!foundChapter) {
+                    document.getElementById('loading-status').style.display = 'block';
+                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini.";
+                }
+            })
+            .catch(err => {
+                console.error("Gagal mengambil data chapter: ", err);
+                document.getElementById('loading-status').innerText = "Gagal memuat chapter.";
+            });
     </script>
 </body>
 </html>
