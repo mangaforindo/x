@@ -32,7 +32,6 @@
         <div class="site-links">
             <a href="index.html" data-page="home">Home</a>
             <a href="list.html" data-page="daftar">Daftar Manga</a>
-            <a href="index.html#top-manga" data-page="top">Top Manga</a>
             <a href="index.html#terbaru" data-page="terbaru">Terbaru</a>
         </div>
     </nav></header>
@@ -107,7 +106,7 @@
             });
     </script>
 <script>
-const f=location.pathname.split('/').pop()||'index.html';let p='home';if(f==='list.html'||f==='manga.html'||f==='baca.html')p='daftar';if(location.hash==='#top-manga')p='top';if(location.hash==='#terbaru')p='terbaru';document.querySelectorAll('.site-links a').forEach(a=>{if(a.dataset.page===p)a.setAttribute('aria-current','page')});
+const f=location.pathname.split('/').pop()||'index.html';let p='home';if(f==='list.html'||f==='manga.html'||f==='baca.html')p='daftar';if(location.hash==='#terbaru')p='terbaru';document.querySelectorAll('.site-links a').forEach(a=>{if(a.dataset.page===p)a.setAttribute('aria-current','page')});
 </script>
 </body>
 </html>
