@@ -4,29 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Chapter - Manga4indo</title>
-    <style>
-        body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 700px; margin: 0 auto; }
-        h1 { color: #ff4757; text-transform: uppercase; margin-bottom: 5px; }
-        .back-btn { color: #a4b0be; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 20px; }
-        .back-btn:hover { color: #ff4757; }
-        .chapter-list { list-style: none; padding: 0; margin-top: 30px; }
-        .chapter-item { background-color: #1e1e1e; margin-bottom: 10px; border-radius: 6px; transition: 0.2s; }
-        .chapter-item:hover { background-color: #2f3542; }
-        .chapter-item a { display: flex; justify-content: space-between; padding: 15px 20px; color: white; text-decoration: none; font-weight: bold; }
-        .page-count { color: #a4b0be; font-weight: normal; font-size: 14px; }
-        .loading { font-size: 18px; color: #a4b0be; margin-top: 20px; text-align: center; }
-            .site-header{position:sticky;top:0;z-index:1000;margin:-20px -20px 28px;padding:0 20px;background:rgba(18,18,18,.95);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}
-        .site-nav{max-width:1100px;min-height:64px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
-        .site-brand{color:#ff4757;text-decoration:none;font-size:20px;font-weight:800;white-space:nowrap}
-        .site-links{display:flex;align-items:center;gap:5px}
-        .site-links a{color:#a4b0be;text-decoration:none;font-size:14px;font-weight:600;padding:10px 13px;border-radius:8px;white-space:nowrap;transition:.18s}
-        .site-links a:hover,.site-links a[aria-current=page]{color:#fff;background:rgba(255,71,87,.15)}
-        @media(max-width:600px){.site-header{margin-bottom:20px}.site-nav{display:block;padding:9px 0}.site-brand{display:block;font-size:18px;margin:0 0 6px 4px}.site-links{overflow-x:auto;scrollbar-width:none}.site-links::-webkit-scrollbar{display:none}.site-links a{font-size:13px;padding:9px 11px}}
-    </style>
-    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="style.css?v=10">
 </head>
-<body>
+<body class="manga-page-view">
     <header class="site-header"><nav class="site-nav" aria-label="Navigasi utama">
         <a class="site-brand" href="index.html">Manga4indo</a>
         <div class="site-links">
@@ -113,14 +93,22 @@
                 return response.text();
             })
             .then(csvText => {
-                const mangaRow = parseCatalogCSV(csvText).slice(1).find(columns => {
-                    const key = (columns[0] || '').trim().replace(/^"|"$/g, '');
+                const catalogRows = parseCatalogCSV(csvText);
+                const headers = (catalogRows[0] || []).map(value => value.replace(/^\uFEFF/, '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+                const findColumn = patterns => headers.findIndex(header => patterns.some(pattern => pattern.test(header)));
+                const keyIndex = findColumn([/mangakey/, /^key$/, /slug/]);
+                const titleIndex = findColumn([/judul/, /title/, /nama manga/, /^manga$/]);
+                const descriptionIndex = findColumn([/deskripsi/, /sinopsis/, /description/]);
+                const coverIndex = findColumn([/cover/, /sampul/, /gambar/]);
+                const column = (columns, index, fallback) => (columns[index >= 0 ? index : fallback] || '').trim();
+                const mangaRow = catalogRows.slice(1).find(columns => {
+                    const key = column(columns, keyIndex, 0).replace(/^"|"$/g, '');
                     return mangaKey && key.toLowerCase() === mangaKey.toLowerCase();
                 });
-                const fullTitle = mangaRow ? (mangaRow[1] || '').trim() : '';
+                const fullTitle = mangaRow ? column(mangaRow, titleIndex, 1) : '';
                 if (fullTitle) mangaTitleElement.textContent = fullTitle;
-                const coverFile = mangaRow ? (mangaRow[2] || '').trim() : '';
-                const description = mangaRow ? (mangaRow[3] || '').trim() : '';
+                const coverFile = mangaRow ? column(mangaRow, coverIndex, 3) : '';
+                const description = mangaRow ? column(mangaRow, descriptionIndex, 2) : '';
 
                 if (coverFile) {
                     const coverPath = coverFile.split('/').map(encodeURIComponent).join('/');

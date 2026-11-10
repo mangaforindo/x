@@ -5,29 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0b0d12">
     <title>Daftar Manga - Manga4indo</title>
-    <style>
-        .list-intro { max-width: 760px; margin: 0 auto 28px; text-align: center; }
-        .list-kicker { display: inline-block; margin-bottom: 12px; padding: 5px 11px; border: 1px solid var(--line); border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
-        .list-intro h1 { margin: 0 0 8px; color: var(--text); font-size: clamp(32px, 5vw, 46px); letter-spacing: -1.7px; line-height: 1.1; }
-        .list-intro p { margin: 0; color: var(--muted); }
-        .list-toolbar { display: flex; align-items: center; gap: 12px; max-width: 850px; margin: 26px auto 14px; }
-        .search-wrap { position: relative; flex: 1; }
-        .search-wrap::before { content: "⌕"; position: absolute; left: 15px; top: 50%; transform: translateY(-54%); color: var(--muted); font-size: 23px; pointer-events: none; }
-        .search-input, .sort-select { width: 100%; min-height: 48px; padding: 0 15px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); color: var(--text); font: inherit; outline: none; }
-        .search-input { padding-left: 45px; }
-        .search-input::placeholder { color: var(--muted); }
-        .search-input:focus, .sort-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-        .sort-select { width: auto; min-width: 155px; cursor: pointer; }
-        .list-meta { max-width: 850px; margin: 0 auto; display: flex; justify-content: space-between; color: var(--muted); font-size: 13px; }
-        .list-meta strong { color: var(--text); }
-        .list-grid { max-width: 1000px; margin-left: auto !important; margin-right: auto !important; }
-        .empty-state { display: none; max-width: 850px; margin: 18px auto; padding: 24px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }        main.container { width: min(100%, 1120px); max-width: 1120px; margin-inline: auto !important; }
-        .list-toolbar, .list-meta { width: 100%; }
-        @media(max-width: 600px) { .list-toolbar { align-items: stretch; flex-direction: column; gap: 9px; } .sort-select { width: 100%; } .list-meta { font-size: 12px; } }
-    </style>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=10">
 </head>
-<body>
+<body class="list-page">
     <header class="site-header">
         <nav class="site-nav" aria-label="Navigasi utama">
             <a class="site-brand" href="index.html">Manga4indo</a>
@@ -114,10 +94,10 @@
                 card.href = `manga.html?title=${encodeURIComponent(item.key)}`;
 
                 const cover = document.createElement("img");
-                cover.src = `manga/${item.cover.split("/").map(encodeURIComponent).join("/")}`;
+                cover.src = `covers/${item.cover.split("/").map(encodeURIComponent).join("/")}`;
                 cover.alt = `Sampul ${item.title}`;
                 cover.loading = "lazy";
-                cover.onerror = () => { cover.style.visibility = "hidden"; };
+                cover.onerror = () => cover.remove();
 
                 const title = document.createElement("h3");
                 title.textContent = item.title;
@@ -136,9 +116,14 @@
                 const response = await fetch(CATALOG_CSV_URL, { cache: "no-store" });
                 if (!response.ok) throw new Error(`Google Sheets merespons ${response.status}`);
                 const rows = parseCSV(await response.text());
+                const headers = (rows[0] || []).map(value => value.replace(/^\uFEFF/, "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+                const findColumn = patterns => headers.findIndex(header => patterns.some(pattern => pattern.test(header)));
+                const keyIndex = findColumn([/mangakey/, /^key$/, /slug/]);
+                const titleIndex = findColumn([/judul/, /title/, /nama manga/, /^manga$/]);
+                const coverIndex = findColumn([/cover/, /sampul/, /gambar/]);
+                const column = (index, fallback) => index >= 0 ? index : fallback;
                 mangaList = rows.slice(1)
-                    .filter(row => row.length >= 3)
-                    .map(row => ({ key: (row[0] || "").trim(), title: (row[1] || "").trim(), cover: (row[2] || "").trim() }))
+                    .map(row => ({ key: (row[column(keyIndex, 0)] || "").trim(), title: (row[column(titleIndex, 1)] || "").trim(), cover: (row[column(coverIndex, 3)] || "").trim() }))
                     .filter(item => item.key && item.title);
                 loadingStatus.style.display = "none";
                 renderManga();

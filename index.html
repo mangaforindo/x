@@ -4,29 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manga4indo - Baca Manga Bahasa Indonesia</title>
-    <style>
-        body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
-        .container { max-width: 1000px; margin: 0 auto; text-align: center; }
-        h1 { color: #ff4757; font-size: 2.5rem; margin-bottom: 5px; }
-        p.subtitle { color: #a4b0be; margin-bottom: 30px; }
-        .manga-grid { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-top: 20px; }
-        .manga-card { width: 200px; background-color: #1e1e1e; padding: 12px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; text-decoration: none; color: white; text-align: left; }
-        .manga-card:hover { transform: translateY(-8px); background-color: #2f3542; }
-        .manga-card img { width: 100%; height: 280px; object-fit: cover; border-radius: 8px; }
-        .manga-card h3 { margin: 12px 0 5px 0; font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .manga-card span { color: #ff4757; font-size: 13px; font-weight: 500; }
-        .loading { font-size: 18px; color: #a4b0be; margin-top: 5px; }
-            .site-header{position:sticky;top:0;z-index:1000;margin:-20px -20px 28px;padding:0 20px;background:rgba(18,18,18,.95);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}
-        .site-nav{max-width:1100px;min-height:64px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
-        .site-brand{color:#ff4757;text-decoration:none;font-size:20px;font-weight:800;white-space:nowrap}
-        .site-links{display:flex;align-items:center;gap:5px}
-        .site-links a{color:#a4b0be;text-decoration:none;font-size:14px;font-weight:600;padding:10px 13px;border-radius:8px;white-space:nowrap;transition:.18s}
-        .site-links a:hover,.site-links a[aria-current=page]{color:#fff;background:rgba(255,71,87,.15)}
-        @media(max-width:600px){.site-header{margin-bottom:20px}.site-nav{display:block;padding:9px 0}.site-brand{display:block;font-size:18px;margin:0 0 6px 4px}.site-links{overflow-x:auto;scrollbar-width:none}.site-links::-webkit-scrollbar{display:none}.site-links a{font-size:13px;padding:9px 11px}}
-    </style>
-    <link rel="stylesheet" href="style.css?v=8">
+    <link rel="stylesheet" href="style.css?v=10">
 </head>
-<body>
+<body class="home-page">
     <header class="site-header"><nav class="site-nav" aria-label="Navigasi utama">
         <a class="site-brand" href="index.html">Manga4indo</a>
         <div class="site-links">
@@ -78,7 +58,7 @@
                 document.getElementById('loading-status').style.display = 'none';
 
                 // Ambil posisi berdasarkan nama header agar kolom deskripsi tidak terbaca sebagai judul/cover.
-                const headers = (rows[0] || []).map(header => header.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+                const headers = (rows[0] || []).map(header => header.replace(/^\uFEFF/, '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
                 const findColumn = patterns => headers.findIndex(header => patterns.some(pattern => pattern.test(header)));
                 const keyIndex = findColumn([/mangakey/, /^key$/, /slug/]);
                 const titleIndex = findColumn([/judul/, /title/, /nama manga/, /^manga$/]);
