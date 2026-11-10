@@ -59,11 +59,11 @@
                     const columns = currentLine.split(',');
                     if (columns.length < 4) continue;
                     
-                    // Metode .at() di bawah ini digunakan agar nomor indeks tidak terpotong otomatis saat dikirim
-                    const mKey = columns.at(0) ? columns.at(0).trim().replace(/^"|"$/g, '') : '';   // Kolom A
-                    const chId = columns.at(1) ? columns.at(1).trim().replace(/^"|"$/g, '') : '';   // Kolom B
-                    const chName = columns.at(2) ? columns.at(2).trim().replace(/^"|"$/g, '') : ''; // Kolom C
-                    const totalP = columns.at(3) ? columns.at(3).trim().replace(/^"|"$/g, '') : '1'; // Kolom D
+                    // SOLUSI MUTLAK: Menggunakan Object.values untuk membaca urutan kolom tanpa tanda kurung siku agar tidak terpotong AI
+                    const mKey = Object.values(columns).shift().trim().replace(/^"|"$/g, '');
+                    const chId = Object.values(columns).slice(1, 2).pop().trim().replace(/^"|"$/g, '');
+                    const chName = Object.values(columns).slice(2, 3).pop().trim().replace(/^"|"$/g, '');
+                    const totalP = Object.values(columns).slice(3, 4).pop().trim().replace(/^"|"$/g, '');
 
                     if (mKey && mKey.toLowerCase() === mangaKey.toLowerCase()) {
                         foundChapter = true;
