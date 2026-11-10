@@ -11,159 +11,410 @@
             --card-bg: #1e1e1e;
             --btn-home: #2f3542;
         }
+
         [data-theme="light"] {
             --bg-color: #f1f2f6;
             --text-color: #2f3542;
             --card-bg: #ffffff;
             --btn-home: #ced6e0;
         }
-        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', Arial, sans-serif; text-align: center; margin: 0; padding: 20px; transition: background 0.3s, color 0.3s; }
-        .reader-container { max-width: 800px; margin: 0 auto; }
-        .manga-page { max-width: 100%; height: auto; border: 2px solid #222; margin: 20px 0; box-shadow: 0 4px 10px rgba(0,0,0,0.5); cursor: pointer; }
-        .utility-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .nav-buttons { margin: 25px 0; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        button, .dropdown-select { background-color: #ff4757; color: white; border: none; padding: 12px 24px; font-size: 16px; font-weight: bold; cursor: pointer; border-radius: 6px; height: 45px; box-sizing: border-box; transition: 0.2s; }
-        button:hover { background-color: #ff6b81; }
-        .dropdown-select { background-color: var(--card-bg); color: var(--text-color); border: 1px solid #57606f; padding: 0 15px; min-width: 180px; }
-        button:disabled { background-color: #333; color: #777; cursor: not-allowed; }
-        .info { font-size: 18px; color: #a4b0be; }
-        .back-link { display: block; margin-top: 15px; color: #ff4757; text-decoration: none; font-size: 15px; }
-        .btn-util { background-color: var(--btn-home); color: var(--text-color); padding: 8px 15px; font-size: 14px; height: auto; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .reader-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .manga-page {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #222;
+            margin: 20px 0;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+        }
+
+        .utility-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+
+        .nav-buttons {
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button,
+        .dropdown-select {
+            background-color: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            height: 45px;
+            box-sizing: border-box;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background-color: #ff6b81;
+        }
+
+        .dropdown-select {
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid #57606f;
+            padding: 0 15px;
+            min-width: 180px;
+        }
+
+        button:disabled {
+            background-color: #333;
+            color: #777;
+            cursor: not-allowed;
+        }
+
+        .info {
+            font-size: 18px;
+            color: #a4b0be;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 15px;
+            color: #ff4757;
+            text-decoration: none;
+            font-size: 15px;
+        }
+
+        .btn-util {
+            background-color: var(--btn-home);
+            color: var(--text-color);
+            padding: 8px 15px;
+            font-size: 14px;
+            height: auto;
+        }
+
+        .status {
+            color: #ff6b81;
+            margin: 12px 0;
+        }
+
+        @media (max-width: 480px) {
+            .utility-bar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .dropdown-select {
+                min-width: 150px;
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-
     <div class="reader-container">
-        <!-- Bar Utilitas Atas -->
         <div class="utility-bar">
-            <button class="btn-util" onclick="toggleTheme()" id="theme-btn">☀️ Light Mode</button>
-            <button class="btn-util" onclick="saveBookmark()" style="background-color: #2ed573;">📌 Simpan Halaman</button>
+            <button class="btn-util" onclick="toggleTheme()" id="theme-btn">
+                ☀️ Light Mode
+            </button>
+            <button
+                class="btn-util"
+                onclick="saveBookmark()"
+                style="background-color: #2ed573;"
+            >
+                📌 Simpan Halaman
+            </button>
         </div>
 
         <h2 id="display-title">Memuat...</h2>
-        <div class="info">Halaman <span id="current-page">1</span> / <span id="total-pages">--</span></div>
-        
-        <!-- Navigasi Atas -->
+        <div class="info">
+            Halaman <span id="current-page">1</span> /
+            <span id="total-pages">--</span>
+        </div>
+        <div id="chapter-status" class="status" aria-live="polite"></div>
+
         <div class="nav-buttons">
             <button class="btn-prev" onclick="changePage(-1)">◀ Prev</button>
-            <select class="dropdown-select ch-dropdown" onchange="navigateChapter(this.value)"></select>
+            <select
+                class="dropdown-select ch-dropdown"
+                aria-label="Pilih chapter"
+                onchange="navigateChapter(this.value)"
+            >
+                <option value="">Memuat chapter...</option>
+            </select>
             <button class="btn-next" onclick="changePage(1)">Next ▶</button>
         </div>
 
-        <!-- Area Gambar Utama -->
-        <img id="manga-img" src="" alt="Manga Page" class="manga-page" onclick="changePage(1)">
+        <img
+            id="manga-img"
+            src=""
+            alt="Manga Page"
+            class="manga-page"
+            onclick="changePage(1)"
+        >
 
-        <!-- Navigasi Bawah -->
         <div class="nav-buttons">
             <button class="btn-prev" onclick="changePage(-1)">◀ Prev</button>
-            <select class="dropdown-select ch-dropdown" onchange="navigateChapter(this.value)"></select>
+            <select
+                class="dropdown-select ch-dropdown"
+                aria-label="Pilih chapter"
+                onchange="navigateChapter(this.value)"
+            >
+                <option value="">Memuat chapter...</option>
+            </select>
             <button class="btn-next" onclick="changePage(1)">Next ▶</button>
         </div>
 
-        <a href="#" id="back-to-list" class="back-link">← Kembali ke Daftar Chapter</a>
+        <a href="#" id="back-to-list" class="back-link">
+            ← Kembali ke Daftar Chapter
+        </a>
     </div>
 
     <script>
-        const fileExt = '.jpg'; 
+        const FILE_EXT = '.jpg';
+        const CHAPTERS_CSV_URL =
+            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=799183564&single=true&output=csv';
+
         const urlParams = new URLSearchParams(window.location.search);
         const mangaKey = urlParams.get('title') || 'dragon-ball';
-        let currentChapterId = urlParams.get('ch');
-        let totalPages = parseInt(urlParams.get('total')) || 1;
+        const currentChapterId = urlParams.get('ch') || '';
+        const totalFromUrl = Number.parseInt(urlParams.get('total'), 10);
+        const totalPages = Number.isFinite(totalFromUrl) && totalFromUrl > 0
+            ? totalFromUrl
+            : 1;
+
         let page = 1;
 
         const savedPageKey = `bookmark_${mangaKey}_${currentChapterId}`;
-        const hasBookmark = localStorage.getItem(savedPageKey);
-        if(hasBookmark) {
-            page = parseInt(hasBookmark);
-            alert(`Melanjutkan membaca halaman ${page} yang disimpan!`);
+        const savedPage = Number.parseInt(
+            localStorage.getItem(savedPageKey),
+            10
+        );
+
+        if (Number.isFinite(savedPage) && savedPage > 0) {
+            page = Math.min(savedPage, totalPages);
         }
 
-        document.getElementById('display-title').innerText = `${mangaKey.replace(/-/g, ' ').toUpperCase()} - ${currentChapterId ? currentChapterId.replace(/-/g, ' ') : ''}`;
-        document.getElementById('total-pages').innerText = totalPages;
-        document.getElementById('back-to-list').href = `manga.html?title=${mangaKey}`;
+        document.getElementById('display-title').textContent =
+            `${mangaKey.replace(/-/g, ' ').toUpperCase()} - ${currentChapterId.replace(/-/g, ' ')}`;
 
-        // URL CSV khusus tab chapters milik Anda dengan bypass cache otomatis
-        const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
+        document.getElementById('total-pages').textContent = totalPages;
 
-        // Mengambil data untuk Dropdown Selector via CSV Google Sheets
-        fetch(chaptersCsvUrl)
-            .then(res => res.text())
-            .then(csvText => {
-                const lines = csvText.split(/\r?\n/);
-                document.querySelectorAll('.ch-dropdown').forEach(dropdown => {
-                    dropdown.innerHTML = ''; 
-                    for (let i = 1; i < lines.length; i++) {
-                        const currentLine = lines[i].trim();
-                        if (!currentLine) continue;
-                        
-                        const columns = currentLine.split(',');
-                        if (columns.length < 4) continue;
+        const backUrl = new URL('manga.html', window.location.href);
+        backUrl.searchParams.set('title', mangaKey);
+        document.getElementById('back-to-list').href = backUrl.href;
 
-                        // Menggunakan metode .at() yang aman dan anti-terpotong sistem otomatis
-                        const mKey = columns.at(0) ? columns.at(0).trim().replace(/^"|"$/g, '') : '';
-                        const chId = columns.at(1) ? columns.at(1).trim().replace(/^"|"$/g, '') : '';
-                        const chName = columns.at(2) ? columns.at(2).trim().replace(/^"|"$/g, '') : '';
-                        const totalP = columns.at(3) ? columns.at(3).trim().replace(/^"|"$/g, '') : '1';
+        // Membaca CSV termasuk nilai yang mengandung koma di dalam tanda kutip.
+        function parseCSV(text) {
+            const rows = [];
+            let row = [];
+            let value = '';
+            let insideQuotes = false;
 
-                        if (mKey && mKey.toLowerCase() === mangaKey.toLowerCase()) {
-                            const option = document.createElement('option');
-                            option.value = `baca.html?title=${mangaKey}&ch=${chId}&total=${totalP}`;
-                            option.text = chName;
-                            if(chId === currentChapterId) option.selected = true;
-                            dropdown.appendChild(option);
-                        }
-                    }
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const nextChar = text[i + 1];
+
+                if (char === '"' && insideQuotes && nextChar === '"') {
+                    value += '"';
+                    i++;
+                } else if (char === '"') {
+                    insideQuotes = !insideQuotes;
+                } else if (char === ',' && !insideQuotes) {
+                    row.push(value);
+                    value = '';
+                } else if ((char === '\n' || char === '\r') && !insideQuotes) {
+                    if (char === '\r' && nextChar === '\n') i++;
+                    row.push(value);
+                    rows.push(row);
+                    row = [];
+                    value = '';
+                } else {
+                    value += char;
+                }
+            }
+
+            if (value.length > 0 || row.length > 0) {
+                row.push(value);
+                rows.push(row);
+            }
+
+            return rows;
+        }
+
+        async function loadChapterDropdowns() {
+            const dropdowns = document.querySelectorAll('.ch-dropdown');
+            const status = document.getElementById('chapter-status');
+
+            try {
+                const response = await fetch(CHAPTERS_CSV_URL, {
+                    cache: 'no-store'
                 });
-            });
+
+                if (!response.ok) {
+                    throw new Error(`Permintaan CSV gagal (${response.status}).`);
+                }
+
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+
+                if (rows.length < 2) {
+                    throw new Error('CSV kosong atau tidak memiliki baris data.');
+                }
+
+                const chapters = [];
+
+                // Baris pertama adalah header.
+                // Urutan kolom data: mangaKey, chId, chName, totalPages.
+                for (const columns of rows.slice(1)) {
+                    if (!columns || columns.length < 4) continue;
+
+                    const rowMangaKey = (columns[0] || '').trim();
+                    const chapterId = (columns[1] || '').trim();
+                    const chapterName = (columns[2] || '').trim();
+                    const chapterTotal = (columns[3] || '').trim() || '1';
+
+                    if (
+                        rowMangaKey &&
+                        rowMangaKey.toLowerCase() === mangaKey.toLowerCase()
+                    ) {
+                        chapters.push({
+                            id: chapterId,
+                            name: chapterName || chapterId,
+                            total: chapterTotal
+                        });
+                    }
+                }
+
+                for (const dropdown of dropdowns) {
+                    dropdown.replaceChildren();
+
+                    if (chapters.length === 0) {
+                        const option = document.createElement('option');
+                        option.value = '';
+                        option.textContent = 'Chapter tidak ditemukan';
+                        dropdown.appendChild(option);
+                        continue;
+                    }
+
+                    for (const chapter of chapters) {
+                        const option = document.createElement('option');
+                        const chapterUrl = new URL('baca.html', window.location.href);
+                        chapterUrl.searchParams.set('title', mangaKey);
+                        chapterUrl.searchParams.set('ch', chapter.id);
+                        chapterUrl.searchParams.set('total', chapter.total);
+
+                        option.value = chapterUrl.href;
+                        option.textContent = chapter.name;
+                        option.selected = chapter.id === currentChapterId;
+                        dropdown.appendChild(option);
+                    }
+                }
+
+                if (chapters.length === 0) {
+                    status.textContent =
+                        'Chapter manga ini tidak ditemukan di Google Sheet. Periksa mangaKey.';
+                } else {
+                    status.textContent = '';
+                }
+            } catch (error) {
+                console.error('Gagal memuat chapter:', error);
+                status.textContent =
+                    'Gagal memuat daftar chapter. Periksa koneksi dan pengaturan publikasi Google Sheet.';
+
+                for (const dropdown of dropdowns) {
+                    dropdown.replaceChildren();
+
+                    const option = document.createElement('option');
+                    option.value = '';
+                    option.textContent = 'Gagal memuat chapter';
+                    dropdown.appendChild(option);
+                }
+            }
+        }
 
         function renderPage() {
-            // Mengubah ke penamaan gambar format 3 digit (001.jpg, 002.jpg, dst)
             const formattedPage = String(page).padStart(3, '0');
-            document.getElementById('manga-img').src = `manga/${mangaKey}/${currentChapterId}/${formattedPage}${fileExt}`;
-            document.getElementById('current-page').innerText = page;
+            const imageUrl =
+                `manga/${encodeURIComponent(mangaKey)}/${encodeURIComponent(currentChapterId)}/${formattedPage}${FILE_EXT}`;
 
-            document.querySelectorAll('.btn-prev').forEach(btn => btn.disabled = (page === 1));
-            document.querySelectorAll('.btn-next').forEach(btn => btn.disabled = (page === totalPages));
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            document.getElementById('manga-img').src = imageUrl;
+            document.getElementById('current-page').textContent = page;
+
+            document.querySelectorAll('.btn-prev').forEach(button => {
+                button.disabled = page <= 1;
+            });
+
+            document.querySelectorAll('.btn-next').forEach(button => {
+                button.disabled = page >= totalPages;
+            });
         }
 
         function changePage(direction) {
-            page += direction;
-            if (page < 1) page = 1;
-            if (page > totalPages) { page = totalPages; return; }
+            const nextPage = page + direction;
+
+            if (nextPage < 1 || nextPage > totalPages) return;
+
+            page = nextPage;
             renderPage();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        function navigateChapter(url) { window.location.href = url; }
-        
+        function navigateChapter(url) {
+            if (url) {
+                window.location.href = url;
+            }
+        }
+
         function saveBookmark() {
-            localStorage.setItem(savedPageKey, page);
+            localStorage.setItem(savedPageKey, String(page));
             alert(`Halaman ${page} disimpan!`);
         }
 
         function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            let targetTheme = 'dark';
-            if (currentTheme === 'dark' || !currentTheme) {
-                targetTheme = 'light';
-                document.getElementById('theme-btn').innerText = "🌙 Dark Mode";
-            } else {
-                targetTheme = 'dark';
-                document.getElementById('theme-btn').innerText = "☀️ Light Mode";
-            }
+            const currentTheme =
+                document.documentElement.getAttribute('data-theme');
+            const targetTheme = currentTheme === 'light' ? 'dark' : 'light';
+
             document.documentElement.setAttribute('data-theme', targetTheme);
             localStorage.setItem('theme_preference', targetTheme);
+
+            document.getElementById('theme-btn').textContent =
+                targetTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
         }
 
         const savedTheme = localStorage.getItem('theme_preference') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        if(savedTheme === 'light') document.getElementById('theme-btn').innerText = "🌙 Dark Mode";
+        document.getElementById('theme-btn').textContent =
+            savedTheme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode';
 
-        document.addEventListener('keydown', e => {
-            if (e.key === "ArrowLeft" && page > 1) changePage(-1);
-            if (e.key === "ArrowRight" && page < totalPages) changePage(1);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'ArrowLeft') changePage(-1);
+            if (event.key === 'ArrowRight') changePage(1);
         });
 
+        loadChapterDropdowns();
         renderPage();
     </script>
 </body>
