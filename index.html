@@ -16,16 +16,32 @@
         .manga-card h3 { margin: 12px 0 5px 0; font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .manga-card span { color: #ff4757; font-size: 13px; font-weight: 500; }
         .loading { font-size: 18px; color: #a4b0be; margin-top: 5px; }
+            .site-header{position:sticky;top:0;z-index:1000;margin:-20px -20px 28px;padding:0 20px;background:rgba(18,18,18,.95);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}
+        .site-nav{max-width:1100px;min-height:64px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+        .site-brand{color:#ff4757;text-decoration:none;font-size:20px;font-weight:800;white-space:nowrap}
+        .site-links{display:flex;align-items:center;gap:5px}
+        .site-links a{color:#a4b0be;text-decoration:none;font-size:14px;font-weight:600;padding:10px 13px;border-radius:8px;white-space:nowrap;transition:.18s}
+        .site-links a:hover,.site-links a[aria-current=page]{color:#fff;background:rgba(255,71,87,.15)}
+        @media(max-width:600px){.site-header{margin-bottom:20px}.site-nav{display:block;padding:9px 0}.site-brand{display:block;font-size:18px;margin:0 0 6px 4px}.site-links{overflow-x:auto;scrollbar-width:none}.site-links::-webkit-scrollbar{display:none}.site-links a{font-size:13px;padding:9px 11px}}
     </style>
 </head>
 <body>
+    <header class="site-header"><nav class="site-nav" aria-label="Navigasi utama">
+        <a class="site-brand" href="index.html">Manga4indo</a>
+        <div class="site-links">
+            <a href="index.html" data-page="home">Home</a>
+            <a href="index.html#daftar-manga" data-page="daftar">Daftar Manga</a>
+            <a href="index.html#top-manga" data-page="top">Top Manga</a>
+            <a href="index.html#terbaru" data-page="terbaru">Terbaru</a>
+        </div>
+    </nav></header>
 
     <div class="container">
         <h1>Manga4indo</h1>
         <p class="subtitle">Baca Manga, Manhwa, Komik, Webtoon Bahasa Indonesia</p>
         
         <div id="loading-status" class="loading">Memuat katalog komik...</div>
-        <div class="manga-grid" id="manga-container"></div>
+        <span id="top-manga"></span><span id="terbaru"></span><span id="daftar-manga"></span><div class="manga-grid" id="manga-container"></div>
     </div>
 
     <script>
@@ -68,5 +84,8 @@
                 document.getElementById('loading-status').innerText = "Gagal memuat katalog manga.";
             });
     </script>
+<script>
+const f=location.pathname.split('/').pop()||'index.html';let p='home';if(f==='manga.html'||f==='baca.html')p='daftar';if(location.hash==='#top-manga')p='top';if(location.hash==='#terbaru')p='terbaru';document.querySelectorAll('.site-links a').forEach(a=>{if(a.dataset.page===p)a.setAttribute('aria-current','page')});
+</script>
 </body>
 </html>
