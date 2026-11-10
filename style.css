@@ -314,3 +314,24 @@ button:disabled { opacity: .45; }
         justify-content: center !important;
     }
 }
+/* Keep reader arrows and labels together */
+.reader-container .nav-buttons .btn-prev,
+.reader-container .nav-buttons .btn-next {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 82px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    word-break: keep-all;
+    line-height: 1.15;
+}
+@media (max-width: 700px) {
+    .reader-container .nav-buttons .btn-prev,
+    .reader-container .nav-buttons .btn-next {
+        min-width: 82px;
+        flex: 1 1 0;
+        white-space: nowrap;
+    }
+}
