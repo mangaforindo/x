@@ -5,220 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Chapter - Manga4indo</title>
     <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        h1 {
-            color: #ff4757;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .back-btn {
-            color: #a4b0be;
-            text-decoration: none;
-            font-size: 14px;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-
-        .back-btn:hover {
-            color: #ff4757;
-        }
-
-        .chapter-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 30px;
-        }
-
-        .chapter-item {
-            background-color: #1e1e1e;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            transition: 0.2s;
-        }
-
-        .chapter-item:hover {
-            background-color: #2f3542;
-        }
-
-        .chapter-item a {
-            display: flex;
-            justify-content: space-between;
-            gap: 16px;
-            padding: 15px 20px;
-            color: white;
-            text-decoration: none;
-            font-weight: bold;
-        }
-
-        .page-count {
-            color: #a4b0be;
-            font-weight: normal;
-            font-size: 14px;
-            white-space: nowrap;
-        }
-
-        .loading {
-            font-size: 18px;
-            color: #a4b0be;
-            margin-top: 20px;
-            text-align: center;
-        }
+        body { background-color: #121212; color: #ffffff; font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 700px; margin: 0 auto; }
+        h1 { color: #ff4757; text-transform: uppercase; margin-bottom: 5px; }
+        .back-btn { color: #a4b0be; text-decoration: none; font-size: 14px; display: inline-block; margin-bottom: 20px; }
+        .back-btn:hover { color: #ff4757; }
+        .chapter-list { list-style: none; padding: 0; margin-top: 30px; }
+        .chapter-item { background-color: #1e1e1e; margin-bottom: 10px; border-radius: 6px; transition: 0.2s; }
+        .chapter-item:hover { background-color: #2f3542; }
+        .chapter-item a { display: flex; justify-content: space-between; padding: 15px 20px; color: white; text-decoration: none; font-weight: bold; }
+        .page-count { color: #a4b0be; font-weight: normal; font-size: 14px; }
+        .loading { font-size: 18px; color: #a4b0be; margin-top: 20px; text-align: center; }
+            .site-header{position:sticky;top:0;z-index:1000;margin:-20px -20px 28px;padding:0 20px;background:rgba(18,18,18,.95);border-bottom:1px solid rgba(255,255,255,.08);backdrop-filter:blur(12px)}
+        .site-nav{max-width:1100px;min-height:64px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:20px}
+        .site-brand{color:#ff4757;text-decoration:none;font-size:20px;font-weight:800;white-space:nowrap}
+        .site-links{display:flex;align-items:center;gap:5px}
+        .site-links a{color:#a4b0be;text-decoration:none;font-size:14px;font-weight:600;padding:10px 13px;border-radius:8px;white-space:nowrap;transition:.18s}
+        .site-links a:hover,.site-links a[aria-current=page]{color:#fff;background:rgba(255,71,87,.15)}
+        @media(max-width:600px){.site-header{margin-bottom:20px}.site-nav{display:block;padding:9px 0}.site-brand{display:block;font-size:18px;margin:0 0 6px 4px}.site-links{overflow-x:auto;scrollbar-width:none}.site-links::-webkit-scrollbar{display:none}.site-links a{font-size:13px;padding:9px 11px}}
     </style>
 </head>
 <body>
+    <header class="site-header"><nav class="site-nav" aria-label="Navigasi utama">
+        <a class="site-brand" href="index.html">Manga4indo</a>
+        <div class="site-links">
+            <a href="index.html" data-page="home">Home</a>
+            <a href="index.html#daftar-manga" data-page="daftar">Daftar Manga</a>
+            <a href="index.html#top-manga" data-page="top">Top Manga</a>
+            <a href="index.html#terbaru" data-page="terbaru">Terbaru</a>
+        </div>
+    </nav></header>
     <div class="container">
         <a href="index.html" class="back-btn">← Kembali ke Home</a>
         <h1 id="manga-title">Memuat Manga...</h1>
         <p style="color: #a4b0be;">Silakan pilih chapter untuk mulai membaca:</p>
-
+        
         <div id="loading-status" class="loading">Mengambil daftar chapter...</div>
         <ul class="chapter-list" id="list-container"></ul>
     </div>
 
     <script>
-        const CHAPTERS_CSV_URL =
-            'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=799183564&single=true&output=csv';
-
         const urlParams = new URLSearchParams(window.location.search);
-        const mangaKey = urlParams.get('title') || '';
-        const titleElement = document.getElementById('manga-title');
-        const statusElement = document.getElementById('loading-status');
-        const listContainer = document.getElementById('list-container');
+        const mangaKey = urlParams.get('title');
 
-        if (mangaKey) {
-            titleElement.textContent = mangaKey.replace(/-/g, ' ');
-        } else {
-            titleElement.textContent = 'Manga tidak ditemukan';
-            statusElement.textContent = 'Parameter title tidak ada di alamat halaman.';
+        if(mangaKey) {
+            document.getElementById('manga-title').innerText = mangaKey.replace(/-/g, ' ');
         }
 
-        // Membaca CSV termasuk nilai yang mengandung koma di dalam tanda kutip.
-        function parseCSV(text) {
-            const rows = [];
-            let row = [];
-            let value = '';
-            let insideQuotes = false;
+        // Tautan CSV milik Anda dengan pengaman bypass cache otomatis
+        const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
 
-            for (let i = 0; i < text.length; i++) {
-                const char = text[i];
-                const nextChar = text[i + 1];
-
-                if (char === '"' && insideQuotes && nextChar === '"') {
-                    value += '"';
-                    i++;
-                } else if (char === '"') {
-                    insideQuotes = !insideQuotes;
-                } else if (char === ',' && !insideQuotes) {
-                    row.push(value);
-                    value = '';
-                } else if ((char === '\n' || char === '\r') && !insideQuotes) {
-                    if (char === '\r' && nextChar === '\n') i++;
-                    row.push(value);
-                    rows.push(row);
-                    row = [];
-                    value = '';
-                } else {
-                    value += char;
-                }
-            }
-
-            if (value.length > 0 || row.length > 0) {
-                row.push(value);
-                rows.push(row);
-            }
-
-            return rows;
-        }
-
-        async function loadChapters() {
-            if (!mangaKey) return;
-
-            try {
-                const response = await fetch(CHAPTERS_CSV_URL, {
-                    cache: 'no-store'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Permintaan CSV gagal (${response.status}).`);
-                }
-
-                const csvText = await response.text();
-                const rows = parseCSV(csvText);
-
-                if (rows.length < 2) {
-                    throw new Error('CSV kosong atau tidak memiliki baris data.');
-                }
+        fetch(chaptersCsvUrl)
+            .then(res => {
+                if (!res.ok) throw new Error("Jaringan bermasalah");
+                return res.text();
+            })
+            .then(csvText => {
+                const lines = csvText.split(/\r?\n/);
+                const listContainer = document.getElementById('list-container');
+                document.getElementById('loading-status').style.display = 'none';
 
                 let foundChapter = false;
 
-                // Baris pertama adalah header.
-                // Urutan kolom data: mangaKey, chId, chName, totalPages.
-                for (const columns of rows.slice(1)) {
-                    if (!columns || columns.length < 4) continue;
+                // Loop baris data dari Google Sheet (melewati baris header ke-0)
+                for (let i = 1; i < lines.length; i++) {
+                    const currentLine = lines[i].trim();
+                    if (!currentLine) continue;
 
-                    const rowMangaKey = (columns[0] || '').trim();
-                    const chapterId = (columns[1] || '').trim();
-                    const chapterName = (columns[2] || '').trim();
-                    const totalPages = (columns[3] || '').trim();
+                    const columns = currentLine.split(',');
+                    if (columns.length < 4) continue;
+                    
+                    // SOLUSI MUTLAK: Menggunakan Object.values untuk membaca urutan kolom tanpa tanda kurung siku agar tidak terpotong AI
+                    const mKey = Object.values(columns).shift().trim().replace(/^"|"$/g, '');
+                    const chId = Object.values(columns).slice(1, 2).pop().trim().replace(/^"|"$/g, '');
+                    const chName = Object.values(columns).slice(2, 3).pop().trim().replace(/^"|"$/g, '');
+                    const totalP = Object.values(columns).slice(3, 4).pop().trim().replace(/^"|"$/g, '');
 
-                    if (
-                        !rowMangaKey ||
-                        rowMangaKey.toLowerCase() !== mangaKey.toLowerCase()
-                    ) {
-                        continue;
+                    if (mKey && mKey.toLowerCase() === mangaKey.toLowerCase()) {
+                        foundChapter = true;
+                        const li = document.createElement('li');
+                        li.className = 'chapter-item';
+                        li.innerHTML = `
+                            <a href="baca.html?title=${mangaKey}&ch=${chId}&total=${totalP}">
+                                <span>${chName}</span>
+                                <span class="page-count">${totalP} Hal</span>
+                            </a>`;
+                        listContainer.appendChild(li);
                     }
-
-                    foundChapter = true;
-
-                    const item = document.createElement('li');
-                    item.className = 'chapter-item';
-
-                    const link = document.createElement('a');
-                    const chapterUrl = new URL('baca.html', window.location.href);
-                    chapterUrl.searchParams.set('title', mangaKey);
-                    chapterUrl.searchParams.set('ch', chapterId);
-                    chapterUrl.searchParams.set('total', totalPages || '1');
-                    link.href = chapterUrl.href;
-
-                    const name = document.createElement('span');
-                    name.textContent = chapterName || chapterId;
-
-                    const count = document.createElement('span');
-                    count.className = 'page-count';
-                    count.textContent = `${totalPages || '1'} Hal`;
-
-                    link.append(name, count);
-                    item.appendChild(link);
-                    listContainer.appendChild(item);
                 }
 
-                if (foundChapter) {
-                    statusElement.style.display = 'none';
-                } else {
-                    statusElement.textContent =
-                        'Belum ada chapter untuk manga ini. Periksa mangaKey di Google Sheet.';
+                if(!foundChapter) {
+                    document.getElementById('loading-status').style.display = 'block';
+                    document.getElementById('loading-status').innerText = "Belum ada chapter untuk manga ini. Cek kembali Google Sheet Anda.";
                 }
-            } catch (error) {
-                console.error('Gagal memuat chapter:', error);
-                statusElement.textContent =
-                    'Gagal memuat daftar chapter. Periksa koneksi dan pengaturan publikasi Google Sheet.';
-            }
-        }
-
-        loadChapters();
+            })
+            .catch(err => {
+                console.error("Gagal memuat chapter: ", err);
+                document.getElementById('loading-status').style.display = 'block';
+                document.getElementById('loading-status').innerText = "Gagal memuat daftar chapter. Silakan coba muat ulang halaman.";
+            });
     </script>
+<script>
+const f=location.pathname.split('/').pop()||'index.html';let p='home';if(f==='manga.html'||f==='baca.html')p='daftar';if(location.hash==='#top-manga')p='top';if(location.hash==='#terbaru')p='terbaru';document.querySelectorAll('.site-links a').forEach(a=>{if(a.dataset.page===p)a.setAttribute('aria-current','page')});
+</script>
 </body>
 </html>
