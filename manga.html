@@ -48,9 +48,61 @@
         const urlParams = new URLSearchParams(window.location.search);
         const mangaKey = urlParams.get('title');
 
-        if(mangaKey) {
-            document.getElementById('manga-title').innerText = mangaKey.replace(/-/g, ' ');
+        const mangaTitleElement = document.getElementById('manga-title');
+        if (mangaKey) {
+            mangaTitleElement.textContent = mangaKey.replace(/-/g, ' ');
         }
+
+        // Ambil judul lengkap dari kolom kedua sheet katalog berdasarkan mangaKey di kolom pertama.
+        const mangaCatalogCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=0&single=true&output=csv';
+
+        function parseCatalogCSV(text) {
+            const rows = [];
+            let row = [];
+            let value = '';
+            let quoted = false;
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                const next = text[i + 1];
+                if (char === '"' && quoted && next === '"') {
+                    value += '"';
+                    i++;
+                } else if (char === '"') {
+                    quoted = !quoted;
+                } else if (char === ',' && !quoted) {
+                    row.push(value);
+                    value = '';
+                } else if ((char === '\n' || char === '\r') && !quoted) {
+                    if (char === '\r' && next === '\n') i++;
+                    row.push(value);
+                    rows.push(row);
+                    row = [];
+                    value = '';
+                } else {
+                    value += char;
+                }
+            }
+            if (value.length || row.length) {
+                row.push(value);
+                rows.push(row);
+            }
+            return rows;
+        }
+
+        fetch(mangaCatalogCsvUrl, { cache: 'no-store' })
+            .then(response => {
+                if (!response.ok) throw new Error(`Google Sheet merespons ${response.status}`);
+                return response.text();
+            })
+            .then(csvText => {
+                const mangaRow = parseCatalogCSV(csvText).slice(1).find(columns => {
+                    const key = (columns[0] || '').trim().replace(/^"|"$/g, '');
+                    return mangaKey && key.toLowerCase() === mangaKey.toLowerCase();
+                });
+                const fullTitle = mangaRow ? (mangaRow[1] || '').trim() : '';
+                if (fullTitle) mangaTitleElement.textContent = fullTitle;
+            })
+            .catch(error => console.warn('Judul manga lengkap tidak termuat:', error));
 
         // Tautan CSV milik Anda dengan pengaman bypass cache otomatis
         const chaptersCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=799183564&single=true&output=csv';
