@@ -24,7 +24,7 @@
         .site-links a:hover,.site-links a[aria-current=page]{color:#fff;background:rgba(255,71,87,.15)}
         @media(max-width:600px){.site-header{margin-bottom:20px}.site-nav{display:block;padding:9px 0}.site-brand{display:block;font-size:18px;margin:0 0 6px 4px}.site-links{overflow-x:auto;scrollbar-width:none}.site-links::-webkit-scrollbar{display:none}.site-links a{font-size:13px;padding:9px 11px}}
     </style>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
     <header class="site-header"><nav class="site-nav" aria-label="Navigasi utama">
@@ -37,11 +37,26 @@
     </nav></header>
     <div class="container">
         <a href="index.html" class="back-btn">← Kembali ke Home</a>
-        <h1 id="manga-title">Memuat Manga...</h1>
-        <p style="color: #a4b0be;">Silakan pilih chapter untuk mulai membaca:</p>
-        
-        <div id="loading-status" class="loading">Mengambil daftar chapter...</div>
+        <section class="manga-profile" aria-label="Informasi manga">
+            <img id="manga-cover" class="manga-cover" src="" alt="" hidden>
+            <div class="manga-profile-copy">
+                <span class="manga-kicker">Tentang manga</span>
+                <h1 id="manga-title">Memuat Manga...</h1>
+                <p id="manga-description" class="manga-description">Memuat informasi manga...</p>
+            </div>
+        </section>
+
+        <section class="chapter-section" aria-labelledby="chapter-heading">
+            <div class="chapter-section-heading">
+                <div>
+                    <span class="manga-kicker">Mulai membaca</span>
+                    <h2 id="chapter-heading">Daftar Chapter</h2>
+                </div>
+                <span class="chapter-total-label">Pilih chapter</span>
+            </div>
+            <div id="loading-status" class="loading">Mengambil daftar chapter...</div>
         <ul class="chapter-list" id="list-container"></ul>
+        </section>
     </div>
 
     <script>
@@ -49,6 +64,9 @@
         const mangaKey = urlParams.get('title');
 
         const mangaTitleElement = document.getElementById('manga-title');
+        const mangaCoverElement = document.getElementById('manga-cover');
+        const mangaDescriptionElement = document.getElementById('manga-description');
+        mangaCoverElement.addEventListener('error', () => { mangaCoverElement.hidden = true; });
         if (mangaKey) {
             mangaTitleElement.textContent = mangaKey.replace(/-/g, ' ');
         }
@@ -101,6 +119,17 @@
                 });
                 const fullTitle = mangaRow ? (mangaRow[1] || '').trim() : '';
                 if (fullTitle) mangaTitleElement.textContent = fullTitle;
+                const coverFile = mangaRow ? (mangaRow[2] || '').trim() : '';
+                const description = mangaRow ? (mangaRow[3] || '').trim() : '';
+
+                if (coverFile) {
+                    const coverPath = coverFile.split('/').map(encodeURIComponent).join('/');
+                    mangaCoverElement.src = `covers/${coverPath}`;
+                    mangaCoverElement.alt = `Sampul ${fullTitle || mangaKey}`;
+                    mangaCoverElement.hidden = false;
+                }
+
+                mangaDescriptionElement.textContent = description || 'Pilih chapter di bawah untuk mulai membaca.';
             })
             .catch(error => console.warn('Judul manga lengkap tidak termuat:', error));
 
