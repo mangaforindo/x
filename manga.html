@@ -36,26 +36,44 @@
             document.getElementById('manga-title').innerText = mangaKey.replace(/-/g, ' ');
         }
 
-        // URL Google Sheet CSV Tab Chapters Anda dengan bypass cache otomatis
+        // Tautan CSV milik Anda dengan bypass cache otomatis
         const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
 
-        // Fungsi pemisah baris CSV pintar yang kebal dari tanda koma di dalam teks teks
+        // Parser CSV standar yang aman dan andal
         function parseCSV(text) {
             let lines = text.split(/\r?\n/);
-            return lines.map(line => {
-                let matches = [];
-                let match;
-                let regex = /([^",]+)|"([^"]*)"/g;
+            let result = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) continue;
                 
-                while ((match = regex.exec(line)) !== null) {
-                    matches.push(match[1] || match[2] || "");
+                let row = [];
+                let inQuotes = false;
+                let currentStr = '';
+                
+                for (let j = 0; j < line.length; j++) {
+                    let char = line[j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(currentStr.trim().replace(/^"|"$/g, ''));
+                        currentStr = '';
+                    } else {
+                        currentStr += char;
+                    }
                 }
-                return matches.map(v => v.trim());
-            });
+                row.push(currentStr.trim().replace(/^"|"$/g, ''));
+                result.push(row);
+            }
+            return result;
         }
 
         fetch(chaptersCsvUrl)
-            .then(res => res.text())
+            .then(res => {
+                if (!res.ok) throw new Error("Jaringan bermasalah");
+                return res.text();
+            })
             .then(csvText => {
                 const parsedData = parseCSV(csvText);
                 const listContainer = document.getElementById('list-container');
@@ -68,7 +86,7 @@
                     const rowData = parsedData[i];
                     if (rowData.length < 4) continue;
 
-                    // Menggunakan nama variabel penunjuk langsung agar anti-error
+                    // Pemanggilan data array menggunakan indeks angka yang sudah diperbaiki
                     const mKey = rowData[0];   // Kolom A (MangaKey)
                     const chId = rowData[1];   // Kolom B (ChapterId)
                     const chName = rowData[2]; // Kolom C (ChapterName)
@@ -94,7 +112,8 @@
             })
             .catch(err => {
                 console.error("Gagal memuat chapter: ", err);
-                document.getElementById('loading-status').innerText = "Gagal memuat daftar chapter.";
+                document.getElementById('loading-status').style.display = 'block';
+                document.getElementById('loading-status').innerText = "Gagal memuat daftar chapter. Pastikan Google Sheet Anda tetap terpublikasi.";
             });
     </script>
 </body>
