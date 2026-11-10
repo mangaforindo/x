@@ -33,20 +33,20 @@
 
     <script>
         // ========================================================
-        // MASUKKAN ID GOOGLE SHEET ANDA DI BAWAH INI
+        // ID GOOGLE SHEET ANDA YANG SUDAH TERHUBUNG
         // ========================================================
-        const SHEET_ID = '1dYtDe9mcD9Zvn5NfuXf6DA-vpA6TGzLbs-jcQw-0Vm8'; // <-- Ganti dengan ID Sheet Anda
+        const SHEET_ID = '1dYtDe9mcD9Zvn5NfuXf6DA-vpA6TGzLbs-jcQw-0Vm8'; 
         const SHEET_NAME = 'manga';
 
         // Endpoint rahasia untuk mengubah sheet menjadi data JSON bersih
-        const jsonUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+        const jsonUrl = `https://google.com{SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
         // Fungsi mengambil data dari Google Sheets
         fetch(jsonUrl)
             .then(res => res.text())
             .then(data => {
                 // Bersihkan teks respon Google agar menjadi objek JSON valid
-                const jsonText = data.match(/(?<="table":).*(?=}\);)/g)[0];
+                const jsonText = data.match(/(?<="table":).*(?=}\);)/g);
                 const jsonData = JSON.parse(jsonText);
                 const rows = jsonData.rows;
 
@@ -55,20 +55,23 @@
 
                 // Lakukan perulangan untuk memunculkan card manga
                 rows.forEach(row => {
-                    const key = row.c[0] ? row.c[0].v : '';   // Kolom A (Key)
-                    const judul = row.c[1] ? row.c[1].v : ''; // Kolom B (Judul)
-                    const cover = row.c[2] ? row.c[2].v : ''; // Kolom C (Cover)
+                    // Validasi keamanan: pastikan struktur kolom Google Sheet ada isinya
+                    if (row.c && row.c[0] && row.c[1] && row.c[2]) {
+                        const key = row.c[0].v;   // Kolom A (Key)
+                        const judul = row.c[1].v; // Kolom B (Judul)
+                        const cover = row.c[2].v; // Kolom C (Cover)
 
-                    if (key && judul) {
-                        // Membuat HTML Card untuk setiap baris di Google Sheets
-                        const cardHtml = `
-                            <a href="manga.html?title=${key}" class="manga-card">
-                                <img src="manga/${cover}" alt="${judul} Cover">
-                                <h3>${judul}</h3>
-                                <span>Lihat Chapter →</span>
-                            </a>
-                        `;
-                        container.innerHTML += cardHtml;
+                        // Filter pengaman agar teks judul kolom/header tidak ikut terbuat menjadi card
+                        if (key !== "Key" && key !== "key" && judul !== "Judul") {
+                            const cardHtml = `
+                                <a href="manga.html?title=${key}" class="manga-card">
+                                    <img src="manga/${cover}" alt="${judul} Cover">
+                                    <h3>${judul}</h3>
+                                    <span>Lihat Chapter →</span>
+                                </a>
+                            `;
+                            container.innerHTML += cardHtml;
+                        }
                     }
                 });
             })
