@@ -36,7 +36,7 @@
             document.getElementById('manga-title').innerText = mangaKey.replace(/-/g, ' ');
         }
 
-        // Tautan CSV khusus tab chapters milik Anda dengan bypass cache otomatis
+        // Tautan CSV milik Anda dengan pengaman bypass cache otomatis
         const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
 
         fetch(chaptersCsvUrl)
@@ -56,15 +56,14 @@
                     const currentLine = lines[i].trim();
                     if (!currentLine) continue;
 
-                    // Menggunakan pemisah dasar .split untuk mencegah penulisan array terpotong otomatis
                     const columns = currentLine.split(',');
                     if (columns.length < 4) continue;
                     
-                    // Membaca indeks kolom dengan metode yang aman diakui browser
-                    const mKey = columns[0] ? columns[0].trim().replace(/^"|"$/g, '') : '';   // Kolom A
-                    const chId = columns[1] ? columns[1].trim().replace(/^"|"$/g, '') : '';   // Kolom B
-                    const chName = columns[2] ? columns[2].trim().replace(/^"|"$/g, '') : ''; // Kolom C
-                    const totalP = columns[3] ? columns[3].trim().replace(/^"|"$/g, '') : '1'; // Kolom D
+                    // Metode .at() di bawah ini digunakan agar nomor indeks tidak terpotong otomatis saat dikirim
+                    const mKey = columns.at(0) ? columns.at(0).trim().replace(/^"|"$/g, '') : '';   // Kolom A
+                    const chId = columns.at(1) ? columns.at(1).trim().replace(/^"|"$/g, '') : '';   // Kolom B
+                    const chName = columns.at(2) ? columns.at(2).trim().replace(/^"|"$/g, '') : ''; // Kolom C
+                    const totalP = columns.at(3) ? columns.at(3).trim().replace(/^"|"$/g, '') : '1'; // Kolom D
 
                     if (mKey && mKey.toLowerCase() === mangaKey.toLowerCase()) {
                         foundChapter = true;
