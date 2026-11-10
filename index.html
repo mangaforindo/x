@@ -10,7 +10,7 @@
         h1 { color: #ff4757; font-size: 2.5rem; margin-bottom: 5px; }
         p.subtitle { color: #a4b0be; margin-bottom: 30px; }
         .manga-grid { display: flex; justify-content: center; gap: 25px; flex-wrap: wrap; margin-top: 20px; }
-        .manga-card { width: 200px; background-color: #1e1e1e; padding: 12px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; text-decoration: none; color: white; text-align: left; }
+        .manga-card { width: 200px; background-color: #1e1e1e; padding: 12px; border-radius: 10px; box-shadow: 0 4px 15 rgba(0,0,0,0.4); transition: transform 0.2s, background-color 0.2s; text-decoration: none; color: white; text-align: left; }
         .manga-card:hover { transform: translateY(-8px); background-color: #2f3542; }
         .manga-card img { width: 100%; height: 280px; object-fit: cover; border-radius: 8px; }
         .manga-card h3 { margin: 12px 0 5px 0; font-size: 16px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -38,7 +38,6 @@
         const SHEET_ID = '1dYtDe9mcD9Zvn5NfuXf6DA-vpA6TGzLbs-jcQw-0Vm8'; 
         const SHEET_NAME = 'manga';
 
-        // TAUTAN URL YANG SUDAH DIPERBAIKI SINKRONISASINYA
         const jsonUrl = `https://google.com{SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
         // Fungsi mengambil data dari Google Sheets
@@ -55,7 +54,7 @@
 
                 // Lakukan perulangan untuk memunculkan card manga
                 rows.forEach(row => {
-                    // Validasi keamanan: pastikan struktur kolom Google Sheet ada isinya
+                    // Validasi keamanan: pastikan struktur kolom Google Sheet terisi minimal 3 kolom pertama
                     if (row.c && row.c[0] && row.c[1] && row.c[2]) {
                         const key = row.c[0].v;   // Kolom A (Key)
                         const judul = row.c[1].v; // Kolom B (Judul)
