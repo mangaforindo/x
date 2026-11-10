@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manga Reader</title>
+    <title>Manga Reader - Manga4indo</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -74,27 +74,48 @@
             alert(`Melanjutkan membaca halaman ${page} yang disimpan!`);
         }
 
-        document.getElementById('display-title').innerText = `${mangaKey.replace('-', ' ').toUpperCase()} - ${currentChapterId.replace('-', ' ')}`;
+        document.getElementById('display-title').innerText = `${mangaKey.replace(/-/g, ' ').toUpperCase()} - ${currentChapterId.replace(/-/g, ' ')}`;
         document.getElementById('total-pages').innerText = totalPages;
         document.getElementById('back-to-list').href = `manga.html?title=${mangaKey}`;
 
-        // Mengambil CSV untuk dropdown
-        const chaptersCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSTTChrIxX7wKFv1mQFcDdKRJ7OwBXyw0q-UDJLMn4t-YYn6olZcJhkvYDEZDo-yl0RWS5rof6OJvui/pub?gid=799183564&single=true&output=csv';
+        const chaptersCsvUrl = 'https://google.com' + new Date().getTime();
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
 
         fetch(chaptersCsvUrl)
             .then(res => res.text())
             .then(csvText => {
                 const lines = csvText.split(/\r?\n/);
                 document.querySelectorAll('.ch-dropdown').forEach(dropdown => {
+                    dropdown.innerHTML = ''; // Reset isi awal
                     for (let i = 1; i < lines.length; i++) {
                         if (!lines[i].trim()) continue;
-                        const columns = lines[i].split(',');
-                        const mKey = columns[0] ? columns[0].trim() : '';
-                        const chId = columns[1] ? columns[1].trim() : '';
-                        const chName = columns[2] ? columns[2].trim() : '';
-                        const totalP = columns[3] ? columns[3].trim() : '1';
+                        const columns = parseCSVLine(lines[i]);
+                        if (columns.length < 4) continue;
 
-                        if (mKey === mangaKey) {
+                        const mKey = columns[0].replace(/^"|"$/g, '').trim();
+                        const chId = columns[1].replace(/^"|"$/g, '').trim();
+                        const chName = columns[2].replace(/^"|"$/g, '').trim();
+                        const totalP = columns[3].replace(/^"|"$/g, '').trim();
+
+                        if (mKey.toLowerCase() === mangaKey.toLowerCase()) {
                             const option = document.createElement('option');
                             option.value = `baca.html?title=${mangaKey}&ch=${chId}&total=${totalP}`;
                             option.text = chName;
@@ -106,7 +127,6 @@
             });
 
         function renderPage() {
-            // BERUBAH MENJADI FORMAT 3 DIGIT (001.jpg, 002.jpg, dst)
             const formattedPage = String(page).padStart(3, '0');
             document.getElementById('manga-img').src = `manga/${mangaKey}/${currentChapterId}/${formattedPage}${fileExt}`;
             document.getElementById('current-page').innerText = page;
